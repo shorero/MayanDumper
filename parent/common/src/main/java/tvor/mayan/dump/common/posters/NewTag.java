@@ -18,6 +18,7 @@ public class NewTag implements Comparable<NewTag> {
 	public NewTag(final MayanTag t) {
 		color = t.getColor();
 		label = t.getLabel();
+		id = t.getId();
 	}
 
 	@Override

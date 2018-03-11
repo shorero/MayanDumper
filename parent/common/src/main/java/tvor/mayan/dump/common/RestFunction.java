@@ -11,7 +11,15 @@ import java.text.MessageFormat;
  */
 public enum RestFunction {
 	//
-	LIST_MAYAN_TAGS("api/tags/tags/");
+	LIST_MAYAN_DOCUMENT_TYPES("api/documents/document_types/"),
+	//
+	LIST_MAYAN_DOCUMENTS("api/documents/documents/"),
+	//
+	LIST_MAYAN_METADATA_TYPES("/api/metadata/metadata_types/"),
+	//
+	LIST_MAYAN_TAGS("api/tags/tags/"),
+	//
+	;
 
 	private String function;
 
