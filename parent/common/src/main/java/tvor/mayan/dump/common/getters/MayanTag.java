@@ -1,65 +1,70 @@
 package tvor.mayan.dump.common.getters;
 
-public class MayanTag {
-    private String color;
-    private int documents_count;
-    private String documents_url;
-    private int id;
-    private String label;
-    private String url;
+public class MayanTag implements Comparable<MayanTag> {
+	private String color;
+	private int documents_count;
+	private String documents_url;
+	private int id;
+	private String label;
+	private String url;
 
-    public String getColor() {
-        return color;
-    }
+	@Override
+	public int compareTo(final MayanTag o) {
+		return label.compareTo(o.label);
+	}
 
-    public int getDocuments_count() {
-        return documents_count;
-    }
+	public String getColor() {
+		return color;
+	}
 
-    public String getDocuments_url() {
-        return documents_url;
-    }
+	public int getDocuments_count() {
+		return documents_count;
+	}
 
-    public int getId() {
-        return id;
-    }
+	public String getDocuments_url() {
+		return documents_url;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public void setColor(final String color) {
-        this.color = color;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setDocuments_count(final int documents_count) {
-        this.documents_count = documents_count;
-    }
+	public void setColor(final String color) {
+		this.color = color;
+	}
 
-    public void setDocuments_url(final String documents_url) {
-        this.documents_url = documents_url;
-    }
+	public void setDocuments_count(final int documents_count) {
+		this.documents_count = documents_count;
+	}
 
-    public void setId(final int id) {
-        this.id = id;
-    }
+	public void setDocuments_url(final String documents_url) {
+		this.documents_url = documents_url;
+	}
 
-    public void setLabel(final String label) {
-        this.label = label;
-    }
+	public void setId(final int id) {
+		this.id = id;
+	}
 
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+	public void setLabel(final String label) {
+		this.label = label;
+	}
 
-    @Override
-    public String toString() {
-        return "Tag [color=" + color + ", documents_count=" + documents_count + ", documents_url=" + documents_url
-                + ", id=" + id + ", label=" + label + ", url=" + url + "]";
-    }
+	public void setUrl(final String url) {
+		this.url = url;
+	}
+
+	@Override
+	public String toString() {
+		return "Tag [color=" + color + ", documents_count=" + documents_count + ", documents_url=" + documents_url
+				+ ", id=" + id + ", label=" + label + ", url=" + url + "]";
+	}
 
 }
