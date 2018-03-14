@@ -10,9 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.client.Client;
@@ -34,6 +32,7 @@ import tvor.mayan.dump.common.DumpFile;
 import tvor.mayan.dump.common.ResponseFilter;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
+import tvor.mayan.dump.common.filers.EntryDocument;
 import tvor.mayan.dump.common.filers.EntryDocumentType;
 import tvor.mayan.dump.common.filers.EntryMetadataType;
 import tvor.mayan.dump.common.filers.EntryTag;
@@ -47,7 +46,6 @@ import tvor.mayan.dump.common.getters.ListMetadataTypes;
 import tvor.mayan.dump.common.getters.ListMetadataTypesForDocumentTypes;
 import tvor.mayan.dump.common.getters.ListTagsResult;
 import tvor.mayan.dump.common.getters.MayanDocument;
-import tvor.mayan.dump.common.posters.NewDocument;
 
 /**
  * @author shore
@@ -96,12 +94,12 @@ public class Main {
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENTS.getFunction());
 		final FileDocument docs = new FileDocument();
-		final List<MayanDocument> dl = new ArrayList<>();
 		do {
 			final ListDocuments result = Utility.callApiGetter(ListDocuments.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(d -> {
-				docs.getDocument_list().add(new NewDocument(d));
-				dl.add(d);
+				final EntryDocument q = new EntryDocument();
+				q.setDocument(d);
+				docs.getDocument_list().add(q);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
@@ -110,10 +108,10 @@ public class Main {
 				DumpFile.DOCUMENT_DESCRIPTIONS.getFileName());
 		final File f = descriptionTarget.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(f, docs);
-		dl.stream().forEach(d -> {
+		docs.getDocument_list().stream().forEach(entry -> {
 			final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
-					DumpFile.DOCUMENT_CONTENTS.getFileName(), d.getUuid());
-			final InputStream in = Main.buildDocumentInputStream(d, argMap, false);
+					DumpFile.DOCUMENT_CONTENTS.getFileName(), entry.getDocument().getUuid());
+			final InputStream in = Main.buildDocumentInputStream(entry.getDocument(), argMap, false);
 			try {
 				Files.copy(in, contentTarget, StandardCopyOption.REPLACE_EXISTING);
 			} catch (final Throwable t) {
