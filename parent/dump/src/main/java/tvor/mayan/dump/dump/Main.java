@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.client.Client;
@@ -32,20 +34,26 @@ import tvor.mayan.dump.common.DumpFile;
 import tvor.mayan.dump.common.ResponseFilter;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
+import tvor.mayan.dump.common.filers.EntryCabinet;
 import tvor.mayan.dump.common.filers.EntryDocument;
 import tvor.mayan.dump.common.filers.EntryDocumentType;
 import tvor.mayan.dump.common.filers.EntryMetadataType;
 import tvor.mayan.dump.common.filers.EntryTag;
+import tvor.mayan.dump.common.filers.FileCabinets;
 import tvor.mayan.dump.common.filers.FileDocument;
 import tvor.mayan.dump.common.filers.FileDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.filers.FileTag;
+import tvor.mayan.dump.common.getters.ListCabinetDocuments;
+import tvor.mayan.dump.common.getters.ListCabinets;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
+import tvor.mayan.dump.common.getters.ListDocumentVersion;
 import tvor.mayan.dump.common.getters.ListDocuments;
 import tvor.mayan.dump.common.getters.ListMetadataTypes;
 import tvor.mayan.dump.common.getters.ListMetadataTypesForDocumentTypes;
 import tvor.mayan.dump.common.getters.ListTagsResult;
-import tvor.mayan.dump.common.getters.MayanDocument;
+import tvor.mayan.dump.common.getters.MayanCabinet;
+import tvor.mayan.dump.common.getters.MayanVersionInfo;
 
 /**
  * @author shore
@@ -55,17 +63,17 @@ public class Main {
 	/**
 	 * Use the appropriate REST service to download the document itself
 	 *
-	 * @param doc
-	 *            the Mayan tagged document. This structure contains the download
-	 *            URL for the document itself.
+	 * @param version
+	 *            a version of the Mayan document. This structure contains the
+	 *            download URL for the document itself.
 	 * @param argMap
 	 *            the map of command-line arguments
 	 * @param addResponseFilter
 	 *            'true' means configure a response logger
 	 * @return
 	 */
-	private static InputStream buildDocumentInputStream(final MayanDocument doc, final Map<ArgKey, String> argMap,
-			final boolean addResponseFilter) {
+	private static InputStream buildDocumentInputStream(final MayanVersionInfo version,
+			final Map<ArgKey, String> argMap, final boolean addResponseFilter) {
 		final HttpAuthenticationFeature feature = HttpAuthenticationFeature.basicBuilder()
 				.credentials(argMap.get(ArgKey.MAYAN_USERID), argMap.get(ArgKey.MAYAN_PASSWORD)).build();
 		final ClientConfig config = new ClientConfig();
@@ -76,18 +84,42 @@ public class Main {
 		}
 		final Client client = ClientBuilder.newClient(config);
 
-		client.property("accept", doc.getLatest_version().getMimetype());
-		final WebTarget target = client.target(doc.getLatest_version().getDownload_url());
+		client.property("accept", version.getMimetype());
+		final WebTarget target = client.target(version.getDownload_url());
 		final Invocation.Builder ib = target.request();
 		final Response response = ib.get();
 
 		final int responseCode = response.getStatus();
 		if (responseCode != 200) {
-			throw new RuntimeException(
-					"Attempt to get " + doc.getLatest_version().getDownload_url() + ": " + responseCode);
+			throw new RuntimeException("Attempt to get " + version.getDownload_url() + ": " + responseCode);
 		}
 
 		return response.readEntity(InputStream.class);
+	}
+
+	private static void dumpCabinets(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
+			throws JsonGenerationException, JsonMappingException, IOException {
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_CABINETS.getFunction());
+		final List<MayanCabinet> cabinetList = new ArrayList<>();
+		do {
+			final ListCabinets result = Utility.callApiGetter(ListCabinets.class, nextUrl, argMap);
+			Arrays.asList(result.getResults()).stream().forEach(topLevel -> {
+				cabinetList.add(topLevel);
+			});
+			nextUrl = result.getNext();
+		} while (nextUrl != null);
+
+		final FileCabinets cabs = new FileCabinets();
+		cabinetList.stream().forEach(cabinet -> {
+			final EntryCabinet entry = new EntryCabinet();
+			Main.populateCabinetEntryFrom(entry, cabinet, argMap);
+			cabs.getCabinets().add(entry);
+		});
+
+		final Path descriptionTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+				DumpFile.CABINETS.getFileName());
+		final File f = descriptionTarget.toFile();
+		mapper.writerWithDefaultPrettyPrinter().writeValue(f, cabs);
 	}
 
 	private static void dumpDocuments(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
@@ -103,20 +135,35 @@ public class Main {
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+		docs.getDocument_list().stream().forEach(entry -> {
+			final String function = RestFunction.LIST_VERSIONS_FOR_DOCUMENT.getFunction(entry.getDocument().getId());
+			String versionUrl = Utility.buildUrl(argMap, function);
+			do {
+				final ListDocumentVersion versions = Utility.callApiGetter(ListDocumentVersion.class, versionUrl,
+						argMap);
+				Arrays.asList(versions.getResults()).stream().forEach(version -> {
+					entry.getVersions().add(version);
+				});
+				versionUrl = versions.getNext();
+			} while (versionUrl != null);
+		});
 
 		final Path descriptionTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
 				DumpFile.DOCUMENT_DESCRIPTIONS.getFileName());
 		final File f = descriptionTarget.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(f, docs);
-		docs.getDocument_list().stream().forEach(entry -> {
-			final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
-					DumpFile.DOCUMENT_CONTENTS.getFileName(), entry.getDocument().getUuid());
-			final InputStream in = Main.buildDocumentInputStream(entry.getDocument(), argMap, false);
-			try {
-				Files.copy(in, contentTarget, StandardCopyOption.REPLACE_EXISTING);
-			} catch (final Throwable t) {
-				throw new RuntimeException(t);
-			}
+
+		docs.getDocument_list().stream().forEach(doc -> {
+			doc.getVersions().stream().forEach(version -> {
+				final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+						DumpFile.DOCUMENT_CONTENTS.getFileName(), version.getFile());
+				final InputStream in = Main.buildDocumentInputStream(version, argMap, false);
+				try {
+					Files.copy(in, contentTarget, StandardCopyOption.REPLACE_EXISTING);
+				} catch (final Throwable t) {
+					throw new RuntimeException(t);
+				}
+			});
 		});
 	}
 
@@ -194,7 +241,7 @@ public class Main {
 			do {
 				final ListDocuments dl = Utility.callApiGetter(ListDocuments.class, docUrl, argMap);
 				Arrays.asList(dl.getResults()).stream().forEach(doc -> {
-					entry.getTaggedUuid().add(doc.getUuid());
+					entry.getTagged_uuid().add(doc.getUuid());
 				});
 				docUrl = dl.getNext();
 			} while (docUrl != null);
@@ -212,6 +259,33 @@ public class Main {
 		Main.dumpTags(mapper, argMap);
 		Main.dumpMetadataType(mapper, argMap);
 		Main.dumpDocumentType(mapper, argMap);
+		Main.dumpCabinets(mapper, argMap);
 		Main.dumpDocuments(mapper, argMap);
+	}
+
+	private static void populateCabinetEntryFrom(final EntryCabinet entry, final MayanCabinet cabinet,
+			final Map<ArgKey, String> argMap) {
+		entry.setDocuments_count(cabinet.getDocuments_count());
+		entry.setDocuments_url(cabinet.getDocuments_url());
+		entry.setFull_path(cabinet.getFull_path());
+		entry.setId(cabinet.getId());
+		entry.setLabel(cabinet.getLabel());
+		entry.setParent(cabinet.getParent());
+		entry.setParent_url(cabinet.getParent_url());
+		entry.setUrl(cabinet.getUrl());
+		String nextUrl = entry.getDocuments_url();
+		do {
+			final ListCabinetDocuments docs = Utility.callApiGetter(ListCabinetDocuments.class, nextUrl, argMap);
+			Arrays.asList(docs.getResults()).forEach(doc -> {
+				entry.getDocument_uuid().add(doc.getUuid());
+			});
+			nextUrl = docs.getNext();
+		} while (nextUrl != null);
+
+		Arrays.asList(cabinet.getChildren()).stream().forEach(child -> {
+			final EntryCabinet e2 = new EntryCabinet();
+			Main.populateCabinetEntryFrom(e2, child, argMap);
+			entry.getChildren().add(e2);
+		});
 	}
 }

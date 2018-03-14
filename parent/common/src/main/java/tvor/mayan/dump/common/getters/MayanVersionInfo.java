@@ -7,112 +7,117 @@ package tvor.mayan.dump.common.getters;
  * @author shore
  *
  */
-public class MayanVersionInfo {
-    private String checksum;
-    private String comment;
-    private String document_url;
-    private String download_url;
-    private String encoding;
-    private String file;
-    private String mimetype;
-    private String pages_url;
-    private String size;
-    private String timestamp;
-    private String url;
+public class MayanVersionInfo implements Comparable<MayanVersionInfo> {
+	private String checksum;
+	private String comment;
+	private String document_url;
+	private String download_url;
+	private String encoding;
+	private String file;
+	private String mimetype;
+	private String pages_url;
+	private String size;
+	private String timestamp;
+	private String url;
 
-    public String getChecksum() {
-        return checksum;
-    }
+	@Override
+	public int compareTo(final MayanVersionInfo o) {
+		return timestamp.compareTo(o.timestamp);
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getChecksum() {
+		return checksum;
+	}
 
-    public String getDocument_url() {
-        return document_url;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public String getDownload_url() {
-        return download_url;
-    }
+	public String getDocument_url() {
+		return document_url;
+	}
 
-    public String getEncoding() {
-        return encoding;
-    }
+	public String getDownload_url() {
+		return download_url;
+	}
 
-    public String getFile() {
-        return file;
-    }
+	public String getEncoding() {
+		return encoding;
+	}
 
-    public String getMimetype() {
-        return mimetype;
-    }
+	public String getFile() {
+		return file;
+	}
 
-    public String getPages_url() {
-        return pages_url;
-    }
+	public String getMimetype() {
+		return mimetype;
+	}
 
-    public String getSize() {
-        return size;
-    }
+	public String getPages_url() {
+		return pages_url;
+	}
 
-    public String getTimestamp() {
-        return timestamp;
-    }
+	public String getSize() {
+		return size;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getTimestamp() {
+		return timestamp;
+	}
 
-    public void setChecksum(final String checksum) {
-        this.checksum = checksum;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setComment(final String comment) {
-        this.comment = comment;
-    }
+	public void setChecksum(final String checksum) {
+		this.checksum = checksum;
+	}
 
-    public void setDocument_url(final String document_url) {
-        this.document_url = document_url;
-    }
+	public void setComment(final String comment) {
+		this.comment = comment;
+	}
 
-    public void setDownload_url(final String download_url) {
-        this.download_url = download_url;
-    }
+	public void setDocument_url(final String document_url) {
+		this.document_url = document_url;
+	}
 
-    public void setEncoding(final String encoding) {
-        this.encoding = encoding;
-    }
+	public void setDownload_url(final String download_url) {
+		this.download_url = download_url;
+	}
 
-    public void setFile(final String file) {
-        this.file = file;
-    }
+	public void setEncoding(final String encoding) {
+		this.encoding = encoding;
+	}
 
-    public void setMimetype(final String mimetype) {
-        this.mimetype = mimetype;
-    }
+	public void setFile(final String file) {
+		this.file = file;
+	}
 
-    public void setPages_url(final String pages_url) {
-        this.pages_url = pages_url;
-    }
+	public void setMimetype(final String mimetype) {
+		this.mimetype = mimetype;
+	}
 
-    public void setSize(final String size) {
-        this.size = size;
-    }
+	public void setPages_url(final String pages_url) {
+		this.pages_url = pages_url;
+	}
 
-    public void setTimestamp(final String timestamp) {
-        this.timestamp = timestamp;
-    }
+	public void setSize(final String size) {
+		this.size = size;
+	}
 
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+	public void setTimestamp(final String timestamp) {
+		this.timestamp = timestamp;
+	}
 
-    @Override
-    public String toString() {
-        return "VersionInfo [checksum=" + checksum + ", comment=" + comment + ", document_url=" + document_url
-                + ", download_url=" + download_url + ", encoding=" + encoding + ", file=" + file + ", mimetype="
-                + mimetype + ", pages_url=" + pages_url + ", size=" + size + ", timestamp=" + timestamp + ", url=" + url
-                + "]";
-    }
+	public void setUrl(final String url) {
+		this.url = url;
+	}
+
+	@Override
+	public String toString() {
+		return "VersionInfo [checksum=" + checksum + ", comment=" + comment + ", document_url=" + document_url
+				+ ", download_url=" + download_url + ", encoding=" + encoding + ", file=" + file + ", mimetype="
+				+ mimetype + ", pages_url=" + pages_url + ", size=" + size + ", timestamp=" + timestamp + ", url=" + url
+				+ "]";
+	}
 }

@@ -2,6 +2,8 @@ package tvor.mayan.dump.common;
 
 public enum DumpFile {
 	//
+	CABINETS("cabinets.json"),
+	//
 	DOCUMENT_CONTENTS("documents"),
 	//
 	DOCUMENT_DESCRIPTIONS("documents.json"),
