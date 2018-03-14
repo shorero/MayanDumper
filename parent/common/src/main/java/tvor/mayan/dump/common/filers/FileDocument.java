@@ -5,7 +5,7 @@ import java.util.TreeSet;
 
 import tvor.mayan.dump.common.posters.NewDocument;
 
-public class DocumentFile {
+public class FileDocument {
 	private Set<NewDocument> document_list = new TreeSet<>();
 
 	public Set<NewDocument> getDocument_list() {

@@ -34,19 +34,20 @@ import tvor.mayan.dump.common.DumpFile;
 import tvor.mayan.dump.common.ResponseFilter;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
-import tvor.mayan.dump.common.filers.DocumentFile;
-import tvor.mayan.dump.common.filers.DocumentTypeFile;
-import tvor.mayan.dump.common.filers.MetadataTypeFile;
-import tvor.mayan.dump.common.filers.TagFile;
+import tvor.mayan.dump.common.filers.EntryDocumentType;
+import tvor.mayan.dump.common.filers.EntryMetadataType;
+import tvor.mayan.dump.common.filers.EntryTag;
+import tvor.mayan.dump.common.filers.FileDocument;
+import tvor.mayan.dump.common.filers.FileDocumentType;
+import tvor.mayan.dump.common.filers.FileMetadataType;
+import tvor.mayan.dump.common.filers.FileTag;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
 import tvor.mayan.dump.common.getters.ListDocuments;
 import tvor.mayan.dump.common.getters.ListMetadataTypes;
+import tvor.mayan.dump.common.getters.ListMetadataTypesForDocumentTypes;
 import tvor.mayan.dump.common.getters.ListTagsResult;
 import tvor.mayan.dump.common.getters.MayanDocument;
 import tvor.mayan.dump.common.posters.NewDocument;
-import tvor.mayan.dump.common.posters.NewDocumentType;
-import tvor.mayan.dump.common.posters.NewMetadataType;
-import tvor.mayan.dump.common.posters.NewTag;
 
 /**
  * @author shore
@@ -94,7 +95,7 @@ public class Main {
 	private static void dumpDocuments(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENTS.getFunction());
-		final DocumentFile docs = new DocumentFile();
+		final FileDocument docs = new FileDocument();
 		final List<MayanDocument> dl = new ArrayList<>();
 		do {
 			final ListDocuments result = Utility.callApiGetter(ListDocuments.class, nextUrl, argMap);
@@ -124,28 +125,46 @@ public class Main {
 	private static void dumpDocumentType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENT_TYPES.getFunction());
-		final DocumentTypeFile types = new DocumentTypeFile();
+		final FileDocumentType types = new FileDocumentType();
 		do {
 			final ListDocumentTypes result = Utility.callApiGetter(ListDocumentTypes.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(t -> {
-				types.getType_list().add(new NewDocumentType(t));
+				final EntryDocumentType q = new EntryDocumentType();
+				q.setDocument_type(t);
+				types.getType_list().add(q);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+
+		types.getType_list().stream().forEach(entry -> {
+			final String function = RestFunction.LIST_METADATA_TYPES_FOR_DOCUMENT_TYPE
+					.getFunction(entry.getDocument_type().getId());
+			String typeUrl = Utility.buildUrl(argMap, function);
+			do {
+				final ListMetadataTypesForDocumentTypes data = Utility
+						.callApiGetter(ListMetadataTypesForDocumentTypes.class, typeUrl, argMap);
+				Arrays.asList(data.getResults()).stream().forEach(pair -> {
+					entry.getMetadata_type_label().add(pair.getMetadata_type().getLabel());
+				});
+				typeUrl = data.getNext();
+			} while (typeUrl != null);
+		});
 
 		final Path target = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.DOCUMENT_TYPES.getFileName());
 		final File f = target.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(f, types);
 	}
 
-	private static void dumpMetadata(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
+	private static void dumpMetadataType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_METADATA_TYPES.getFunction());
-		final MetadataTypeFile types = new MetadataTypeFile();
+		final FileMetadataType types = new FileMetadataType();
 		do {
 			final ListMetadataTypes result = Utility.callApiGetter(ListMetadataTypes.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(t -> {
-				types.getType_list().add(new NewMetadataType(t));
+				final EntryMetadataType q = new EntryMetadataType();
+				q.setType(t);
+				types.getType_list().add(q);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
@@ -158,14 +177,31 @@ public class Main {
 	private static void dumpTags(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_TAGS.getFunction());
-		final TagFile tags = new TagFile();
+		final FileTag tags = new FileTag();
 		do {
 			final ListTagsResult result = Utility.callApiGetter(ListTagsResult.class, nextUrl, argMap);
-			Arrays.asList(result.getResults()).stream().forEach(t -> {
-				tags.getTag_list().add(new NewTag(t));
+			Arrays.asList(result.getResults()).stream().forEach(currentTag -> {
+				final EntryTag currentEntry = new EntryTag();
+				currentEntry.setTag(currentTag);
+				tags.getTag_list().add(currentEntry);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+
+		// NOTE: cannot nest the processing, since the rest calls shouldn't be open
+		// simultaneously
+		tags.getTag_list().stream().forEach(entry -> {
+			final String baseUrl = RestFunction.LIST_DOCUMENTS_FOR_TAG.getFunction(entry.getTag().getId());
+			String docUrl = Utility.buildUrl(argMap, baseUrl);
+			do {
+				final ListDocuments dl = Utility.callApiGetter(ListDocuments.class, docUrl, argMap);
+				Arrays.asList(dl.getResults()).stream().forEach(doc -> {
+					entry.getTaggedUuid().add(doc.getUuid());
+				});
+				docUrl = dl.getNext();
+			} while (docUrl != null);
+
+		});
 
 		final Path target = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.TAGS.getFileName());
 		final File f = target.toFile();
@@ -176,7 +212,7 @@ public class Main {
 		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg);
 		final ObjectMapper mapper = new ObjectMapper();
 		Main.dumpTags(mapper, argMap);
-		Main.dumpMetadata(mapper, argMap);
+		Main.dumpMetadataType(mapper, argMap);
 		Main.dumpDocumentType(mapper, argMap);
 		Main.dumpDocuments(mapper, argMap);
 	}
