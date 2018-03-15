@@ -169,7 +169,7 @@ public class Main {
 
 	private static void dumpDocumentType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENT_TYPES.getFunction());
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_DOCUMENT_TYPES.getFunction());
 		final FileDocumentType types = new FileDocumentType();
 		do {
 			final ListDocumentTypes result = Utility.callApiGetter(ListDocumentTypes.class, nextUrl, argMap);
@@ -202,7 +202,7 @@ public class Main {
 
 	private static void dumpMetadataType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_METADATA_TYPES.getFunction());
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_METADATA_TYPES.getFunction());
 		final FileMetadataType types = new FileMetadataType();
 		do {
 			final ListMetadataTypes result = Utility.callApiGetter(ListMetadataTypes.class, nextUrl, argMap);
@@ -221,7 +221,7 @@ public class Main {
 
 	private static void dumpTags(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_TAGS.getFunction());
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_TAGS.getFunction());
 		final FileTag tags = new FileTag();
 		do {
 			final ListTagsResult result = Utility.callApiGetter(ListTagsResult.class, nextUrl, argMap);

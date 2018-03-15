@@ -3,7 +3,7 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class FileCabinets {
+public class FileCabinets implements FileContent {
 	private Set<EntryCabinet> cabinets = new TreeSet<>();
 
 	public Set<EntryCabinet> getCabinets() {

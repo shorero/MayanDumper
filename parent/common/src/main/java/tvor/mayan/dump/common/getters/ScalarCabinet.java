@@ -1,6 +1,8 @@
 package tvor.mayan.dump.common.getters;
 
-public class ScalarCabinet {
+import tvor.mayan.dump.common.filers.AbstractEntry;
+
+public class ScalarCabinet extends AbstractEntry {
 	private int documents_count;
 	private String documents_url;
 	private String full_path;

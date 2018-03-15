@@ -3,7 +3,7 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class FileTag {
+public class FileTag implements FileContent {
 	private Set<EntryTag> tag_list = new TreeSet<>();
 
 	public Set<EntryTag> getTag_list() {

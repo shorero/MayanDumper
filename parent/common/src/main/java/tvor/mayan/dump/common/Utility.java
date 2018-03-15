@@ -13,7 +13,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -70,9 +69,9 @@ public class Utility {
 	 *
 	 * @return the Response object from the request
 	 */
-	public static <T extends PostableData> Response callApiPoster(final T theData, final String targetUrl,
+	public static <T, R> R callApiPoster(final T theData, final Class<R> theResponse, final String targetUrl,
 			final Map<ArgKey, String> argMap) {
-		return Utility.callApiPoster(theData, targetUrl, argMap, false);
+		return Utility.callApiPoster(theData, theResponse, targetUrl, argMap, false);
 	}
 
 	/**
@@ -90,13 +89,13 @@ public class Utility {
 	 *
 	 * @return the Response object from the request
 	 */
-	public static <T extends PostableData> Response callApiPoster(final T theData, final String targetUrl,
+	public static <T, R> R callApiPoster(final T theData, final Class<R> theResponse, final String targetUrl,
 			final Map<ArgKey, String> argMap, final boolean registerResponseFilter) {
 		final Entity<T> entity = Entity.entity(theData, MediaType.APPLICATION_JSON);
 		final WebTarget target = Utility.setUpRestCall(argMap, targetUrl, registerResponseFilter);
 		final Invocation.Builder ib = target.request(MediaType.APPLICATION_JSON);
 
-		return ib.post(entity);
+		return ib.post(entity, theResponse);
 	}
 
 	/**

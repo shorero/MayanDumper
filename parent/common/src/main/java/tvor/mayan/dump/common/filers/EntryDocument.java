@@ -6,7 +6,7 @@ import java.util.TreeSet;
 import tvor.mayan.dump.common.getters.MayanDocument;
 import tvor.mayan.dump.common.getters.MayanVersionInfo;
 
-public class EntryDocument implements Comparable<EntryDocument> {
+public class EntryDocument extends AbstractEntry implements Comparable<EntryDocument> {
 	private MayanDocument document;
 	private Set<MayanVersionInfo> versions = new TreeSet<>();
 
@@ -17,6 +17,11 @@ public class EntryDocument implements Comparable<EntryDocument> {
 
 	public MayanDocument getDocument() {
 		return document;
+	}
+
+	@Override
+	public String getLabel() {
+		return getDocument().getLabel();
 	}
 
 	public Set<MayanVersionInfo> getVersions() {

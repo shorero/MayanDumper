@@ -5,13 +5,18 @@ import java.util.TreeSet;
 
 import tvor.mayan.dump.common.getters.MayanTag;
 
-public class EntryTag implements Comparable<EntryTag> {
+public class EntryTag extends AbstractEntry implements Comparable<EntryTag> {
 	private MayanTag tag;
 	private Set<String> tagged_uuid = new TreeSet<>();
 
 	@Override
 	public int compareTo(final EntryTag o) {
 		return tag.getLabel().compareTo(o.tag.getLabel());
+	}
+
+	@Override
+	public String getLabel() {
+		return getTag().getLabel();
 	}
 
 	public MayanTag getTag() {

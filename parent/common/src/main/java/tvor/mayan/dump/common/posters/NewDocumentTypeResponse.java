@@ -1,6 +1,6 @@
 package tvor.mayan.dump.common.posters;
 
-public class NewDocumentTypeResponse {
+public class NewDocumentTypeResponse extends PostResponse implements Comparable<NewDocumentTypeResponse> {
 	private int delete_time_period;
 	private String delete_time_unit;
 	private int documents_count;
@@ -10,6 +10,11 @@ public class NewDocumentTypeResponse {
 	private int trash_time_period;
 	private String trash_time_unit;
 	private String url;
+
+	@Override
+	public int compareTo(final NewDocumentTypeResponse o) {
+		return label.compareTo(o.label);
+	}
 
 	public int getDelete_time_period() {
 		return delete_time_period;
@@ -81,6 +86,14 @@ public class NewDocumentTypeResponse {
 
 	public void setUrl(final String url) {
 		this.url = url;
+	}
+
+	@Override
+	public String toString() {
+		return "NewDocumentTypeResponse [delete_time_period=" + delete_time_period + ", delete_time_unit="
+				+ delete_time_unit + ", documents_count=" + documents_count + ", documents_url=" + documents_url
+				+ ", id=" + id + ", label=" + label + ", trash_time_period=" + trash_time_period + ", trash_time_unit="
+				+ trash_time_unit + ", url=" + url + "]";
 	}
 
 }

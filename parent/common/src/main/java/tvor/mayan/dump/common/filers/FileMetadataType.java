@@ -3,7 +3,7 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class FileMetadataType {
+public class FileMetadataType implements FileContent {
 	private Set<EntryMetadataType> type_list = new TreeSet<>();
 
 	public Set<EntryMetadataType> getType_list() {

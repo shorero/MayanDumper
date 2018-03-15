@@ -2,86 +2,91 @@ package tvor.mayan.dump.common.posters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class NewMetadataTypeResponse {
-    @JsonProperty("default")
-    private String defaultValue;
-    private int id;
-    private String label;
-    private String lookup;
-    private String name;
-    private String parser;
-    private String url;
-    private String validation;
+public class NewMetadataTypeResponse extends PostResponse implements Comparable<NewMetadataTypeResponse> {
+	@JsonProperty("default")
+	private String defaultValue;
+	private int id;
+	private String label;
+	private String lookup;
+	private String name;
+	private String parser;
+	private String url;
+	private String validation;
 
-    public String getDefaultValue() {
-        return defaultValue;
-    }
+	@Override
+	public int compareTo(final NewMetadataTypeResponse o) {
+		return getLabel().compareTo(o.getLabel());
+	}
 
-    public int getId() {
-        return id;
-    }
+	public String getDefaultValue() {
+		return defaultValue;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public String getLookup() {
-        return lookup;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getLookup() {
+		return lookup;
+	}
 
-    public String getParser() {
-        return parser;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getParser() {
+		return parser;
+	}
 
-    public String getValidation() {
-        return validation;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setDefaultValue(final String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
+	public String getValidation() {
+		return validation;
+	}
 
-    public void setId(final int id) {
-        this.id = id;
-    }
+	public void setDefaultValue(final String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
 
-    public void setLabel(final String label) {
-        this.label = label;
-    }
+	public void setId(final int id) {
+		this.id = id;
+	}
 
-    public void setLookup(final String lookup) {
-        this.lookup = lookup;
-    }
+	public void setLabel(final String label) {
+		this.label = label;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setLookup(final String lookup) {
+		this.lookup = lookup;
+	}
 
-    public void setParser(final String parser) {
-        this.parser = parser;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+	public void setParser(final String parser) {
+		this.parser = parser;
+	}
 
-    public void setValidation(final String validation) {
-        this.validation = validation;
-    }
+	public void setUrl(final String url) {
+		this.url = url;
+	}
 
-    @Override
-    public String toString() {
-        return "MayanMetadataType [defaultValue=" + defaultValue + ", id=" + id + ", label=" + label + ", lookup="
-                + lookup + ", name=" + name + ", parser=" + parser + ", url=" + url + ", validation=" + validation
-                + "]";
-    }
+	public void setValidation(final String validation) {
+		this.validation = validation;
+	}
+
+	@Override
+	public String toString() {
+		return "MayanMetadataType [defaultValue=" + defaultValue + ", id=" + id + ", label=" + label + ", lookup="
+				+ lookup + ", name=" + name + ", parser=" + parser + ", url=" + url + ", validation=" + validation
+				+ "]";
+	}
 
 }

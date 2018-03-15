@@ -1,14 +1,17 @@
 package tvor.mayan.dump.common.posters;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import tvor.mayan.dump.common.getters.MayanTag;
 
+/**
+ * Information needed to create a new tag. NOTE: the API documentation also
+ * shows a field named 'documents_pk_list'. However, an attempt to create a new
+ * tag with this field present returns status 400 (Bad Request).
+ *
+ * @author shore
+ *
+ */
 public class NewTag implements Comparable<NewTag> {
 	private String color;
-	private String documents_pk_list;
-	@JsonIgnore
-	private int id;
 	private String label;
 
 	public NewTag() {
@@ -18,7 +21,6 @@ public class NewTag implements Comparable<NewTag> {
 	public NewTag(final MayanTag t) {
 		color = t.getColor();
 		label = t.getLabel();
-		id = t.getId();
 	}
 
 	@Override
@@ -30,14 +32,6 @@ public class NewTag implements Comparable<NewTag> {
 		return color;
 	}
 
-	public String getDocuments_pk_list() {
-		return documents_pk_list;
-	}
-
-	public int getId() {
-		return id;
-	}
-
 	public String getLabel() {
 		return label;
 	}
@@ -46,16 +40,13 @@ public class NewTag implements Comparable<NewTag> {
 		this.color = color;
 	}
 
-	public void setDocuments_pk_list(final String documents_pk_list) {
-		this.documents_pk_list = documents_pk_list;
-	}
-
-	public void setId(final int id) {
-		this.id = id;
-	}
-
 	public void setLabel(final String label) {
 		this.label = label;
+	}
+
+	@Override
+	public String toString() {
+		return "NewTag [color=" + color + ", label=" + label + "]";
 	}
 
 }
