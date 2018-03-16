@@ -44,6 +44,7 @@ import tvor.mayan.dump.common.filers.FileDocument;
 import tvor.mayan.dump.common.filers.FileDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.filers.FileTag;
+import tvor.mayan.dump.common.filers.MetadataTypeAttachment;
 import tvor.mayan.dump.common.getters.ListCabinetDocuments;
 import tvor.mayan.dump.common.getters.ListCabinets;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
@@ -189,7 +190,10 @@ public class Main {
 				final ListMetadataTypesForDocumentTypes data = Utility
 						.callApiGetter(ListMetadataTypesForDocumentTypes.class, typeUrl, argMap);
 				Arrays.asList(data.getResults()).stream().forEach(pair -> {
-					entry.getMetadata_type_label().add(pair.getMetadata_type().getLabel());
+					final MetadataTypeAttachment attachment = new MetadataTypeAttachment();
+					attachment.setMetadata_type_label(pair.getMetadata_type().getLabel());
+					attachment.setRequired(pair.isRequired());
+					entry.getMetadata_attachment().add(attachment);
 				});
 				typeUrl = data.getNext();
 			} while (typeUrl != null);

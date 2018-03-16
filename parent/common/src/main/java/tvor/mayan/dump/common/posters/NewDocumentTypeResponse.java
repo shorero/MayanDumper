@@ -1,15 +1,33 @@
 package tvor.mayan.dump.common.posters;
 
+import tvor.mayan.dump.common.getters.MayanDocumentType;
+
 public class NewDocumentTypeResponse extends PostResponse implements Comparable<NewDocumentTypeResponse> {
 	private int delete_time_period;
 	private String delete_time_unit;
-	private int documents_count;
+	private Integer documents_count;
 	private String documents_url;
 	private int id;
 	private String label;
 	private int trash_time_period;
 	private String trash_time_unit;
 	private String url;
+
+	public NewDocumentTypeResponse() {
+		// do nothing
+	}
+
+	public NewDocumentTypeResponse(final MayanDocumentType e) {
+		delete_time_period = e.getDelete_time_period();
+		delete_time_unit = e.getDelete_time_unit();
+		documents_count = e.getDocuments_count() == null ? null : Integer.valueOf(e.getDocuments_count());
+		documents_url = e.getDocuments_url();
+		id = e.getId();
+		label = e.getLabel();
+		trash_time_period = e.getTrash_time_period();
+		trash_time_unit = e.getTrash_time_unit();
+		url = e.getUrl();
+	}
 
 	@Override
 	public int compareTo(final NewDocumentTypeResponse o) {
@@ -24,7 +42,7 @@ public class NewDocumentTypeResponse extends PostResponse implements Comparable<
 		return delete_time_unit;
 	}
 
-	public int getDocuments_count() {
+	public Integer getDocuments_count() {
 		return documents_count;
 	}
 
@@ -60,7 +78,7 @@ public class NewDocumentTypeResponse extends PostResponse implements Comparable<
 		this.delete_time_unit = delete_time_unit;
 	}
 
-	public void setDocuments_count(final int documents_count) {
+	public void setDocuments_count(final Integer documents_count) {
 		this.documents_count = documents_count;
 	}
 

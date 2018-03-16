@@ -2,6 +2,8 @@ package tvor.mayan.dump.common.posters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import tvor.mayan.dump.common.getters.MayanMetadataType;
+
 public class NewMetadataTypeResponse extends PostResponse implements Comparable<NewMetadataTypeResponse> {
 	@JsonProperty("default")
 	private String defaultValue;
@@ -12,6 +14,21 @@ public class NewMetadataTypeResponse extends PostResponse implements Comparable<
 	private String parser;
 	private String url;
 	private String validation;
+
+	public NewMetadataTypeResponse() {
+		// do nothing
+	}
+
+	public NewMetadataTypeResponse(final MayanMetadataType e) {
+		defaultValue = e.getDefaultValue();
+		id = e.getId();
+		label = e.getLabel();
+		lookup = e.getLookup();
+		name = e.getName();
+		parser = e.getParser();
+		url = e.getUrl();
+		validation = e.getValidation();
+	}
 
 	@Override
 	public int compareTo(final NewMetadataTypeResponse o) {

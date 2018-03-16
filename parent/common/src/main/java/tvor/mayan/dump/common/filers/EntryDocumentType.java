@@ -7,7 +7,7 @@ import tvor.mayan.dump.common.getters.MayanDocumentType;
 
 public class EntryDocumentType extends AbstractEntry implements Comparable<EntryDocumentType> {
 	private MayanDocumentType document_type;
-	private Set<String> metadata_type_label = new TreeSet<>();
+	private Set<MetadataTypeAttachment> metadata_attachment = new TreeSet<>();
 
 	@Override
 	public int compareTo(final EntryDocumentType o) {
@@ -23,16 +23,16 @@ public class EntryDocumentType extends AbstractEntry implements Comparable<Entry
 		return getDocument_type().getLabel();
 	}
 
-	public Set<String> getMetadata_type_label() {
-		return metadata_type_label;
+	public Set<MetadataTypeAttachment> getMetadata_attachment() {
+		return metadata_attachment;
 	}
 
 	public void setDocument_type(final MayanDocumentType document_type) {
 		this.document_type = document_type;
 	}
 
-	public void setMetadata_type_label(final Set<String> metadata_type_label) {
-		this.metadata_type_label = metadata_type_label;
+	public void setMetadata_attachment(final Set<MetadataTypeAttachment> metadata_attachment) {
+		this.metadata_attachment = metadata_attachment;
 	}
 
 }
