@@ -7,9 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -24,17 +26,21 @@ import tvor.mayan.dump.common.DumpFile;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
 import tvor.mayan.dump.common.filers.AbstractEntry;
+import tvor.mayan.dump.common.filers.EntryCabinet;
 import tvor.mayan.dump.common.filers.EntryDocumentType;
 import tvor.mayan.dump.common.filers.EntryMetadataType;
 import tvor.mayan.dump.common.filers.EntryTag;
+import tvor.mayan.dump.common.filers.FileCabinets;
 import tvor.mayan.dump.common.filers.FileDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.filers.FileTag;
 import tvor.mayan.dump.common.filers.MetadataTypeAttachment;
+import tvor.mayan.dump.common.getters.ListCabinets;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
 import tvor.mayan.dump.common.getters.ListMetadataTypes;
 import tvor.mayan.dump.common.getters.ListMetadataTypesForDocumentTypes;
 import tvor.mayan.dump.common.getters.ListTagsResult;
+import tvor.mayan.dump.common.getters.MayanCabinet;
 import tvor.mayan.dump.common.getters.MayanDocumentType;
 import tvor.mayan.dump.common.getters.MayanMetadataType;
 import tvor.mayan.dump.common.getters.MayanTag;
@@ -107,7 +113,7 @@ public class Main {
 	public static void main(final String[] arg) throws IOException {
 		final Map<RestFunction, Map<String, ? extends AbstractEntry>> contentMap = new EnumMap<>(RestFunction.class);
 		final Map<RestFunction, Map<String, ? extends PostResponse>> responseMap = new EnumMap<>(RestFunction.class);
-		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg);
+		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg, "Mayan-EDMS Database Restorer");
 		final ObjectMapper mapper = new ObjectMapper();
 		Main.restoreTags(mapper, argMap, contentMap, responseMap);
 		Main.restoreMetadataTypes(mapper, argMap, contentMap, responseMap);
@@ -120,8 +126,52 @@ public class Main {
 	private static void restoreCabinets(final ObjectMapper mapper, final Map<ArgKey, String> argMap,
 			final Map<RestFunction, Map<String, ? extends AbstractEntry>> contentMap,
 			final Map<RestFunction, Map<String, ? extends PostResponse>> responseMap) {
-		// TODO Auto-generated method stub
+		final Map<String, NewDocumentTypeResponse> responses = new TreeMap<>();
+		final Map<String, EntryCabinet> entries = new TreeMap<>();
+		responseMap.put(RestFunction.MAYAN_CABINETS, responses);
+		contentMap.put(RestFunction.MAYAN_CABINETS, entries);
 
+		// Get a list of the current cabinets
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_CABINETS.getFunction());
+		final List<MayanCabinet> cabinetList = new ArrayList<>();
+		do {
+			final ListCabinets result = Utility.callApiGetter(ListCabinets.class, nextUrl, argMap);
+			Arrays.asList(result.getResults()).stream().forEach(topLevel -> {
+				cabinetList.add(topLevel);
+			});
+			nextUrl = result.getNext();
+		} while (nextUrl != null);
+
+		final FileCabinets cabs = new FileCabinets();
+		cabinetList.stream().forEach(cabinet -> {
+			final EntryCabinet entry = new EntryCabinet(cabinet);
+			// Utility.populateCabinetEntryFrom(entry, cabinet, argMap);
+			cabs.getCabinets().add(entry);
+		});
+
+		final String targetUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_CABINETS.getFunction());
+		final Path source = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.CABINETS.getFileName());
+		final File f = source.toFile();
+		final FileCabinets incoming = mapper.readValue(f, FileCabinets.class);
+
+		incoming.getCabinets().forEach(c -> {
+			entries.put(c.getLabel(), c);
+			final MayanDocumentType e = existingType.get(t.getLabel());
+			if (e == null) {
+				final NewDocumentType nt = new NewDocumentType(t.getDocument_type());
+				final NewDocumentTypeResponse r = Utility.callApiPoster(nt, NewDocumentTypeResponse.class, targetUrl,
+						argMap, false);
+				responses.put(r.getLabel(), r);
+			} else {
+				final NewDocumentTypeResponse r = new NewDocumentTypeResponse(e);
+				responses.put(r.getLabel(), r);
+			}
+		});
+
+		@SuppressWarnings("unchecked")
+		final Map<String, NewMetadataTypeResponse> metadataTypes = (Map<String, NewMetadataTypeResponse>) responseMap
+				.get(RestFunction.MAYAN_METADATA_TYPES);
+		Main.attachAllowedMetadataTypes(argMap, entries, responses, metadataTypes);
 	}
 
 	private static void restoreDocumentTypes(final ObjectMapper mapper, final Map<ArgKey, String> argMap,
@@ -133,6 +183,7 @@ public class Main {
 		responseMap.put(RestFunction.MAYAN_DOCUMENT_TYPES, responses);
 		contentMap.put(RestFunction.MAYAN_DOCUMENT_TYPES, entries);
 
+		// List the existing document types
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_DOCUMENT_TYPES.getFunction());
 		final Map<String, MayanDocumentType> existingType = new HashMap<>();
 		do {

@@ -9,8 +9,24 @@ public class ScalarCabinet extends AbstractEntry {
 	private int id;
 	private String label;
 	private Integer parent;
+	private String parent_path;
 	private String parent_url;
 	private String url;
+
+	public ScalarCabinet() {
+		// do nothing
+	}
+
+	public ScalarCabinet(final MayanCabinet cabinet) {
+		documents_count = cabinet.getDocuments_count();
+		documents_url = cabinet.getDocuments_url();
+		full_path = cabinet.getFull_path();
+		id = cabinet.getId();
+		label = cabinet.getLabel();
+		parent = cabinet.getParent();
+		parent_url = cabinet.getParent_url();
+		url = cabinet.getUrl();
+	}
 
 	public int getDocuments_count() {
 		return documents_count;
@@ -28,12 +44,17 @@ public class ScalarCabinet extends AbstractEntry {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
 
 	public Integer getParent() {
 		return parent;
+	}
+
+	public String getParent_path() {
+		return parent_path;
 	}
 
 	public String getParent_url() {
@@ -66,6 +87,10 @@ public class ScalarCabinet extends AbstractEntry {
 
 	public void setParent(final Integer parent) {
 		this.parent = parent;
+	}
+
+	public void setParent_path(final String parent_path) {
+		this.parent_path = parent_path;
 	}
 
 	public void setParent_url(final String parent_url) {

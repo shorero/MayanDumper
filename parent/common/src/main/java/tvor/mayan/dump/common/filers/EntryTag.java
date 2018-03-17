@@ -3,6 +3,8 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import tvor.mayan.dump.common.getters.MayanTag;
 
 public class EntryTag extends AbstractEntry implements Comparable<EntryTag> {
@@ -14,6 +16,7 @@ public class EntryTag extends AbstractEntry implements Comparable<EntryTag> {
 		return tag.getLabel().compareTo(o.tag.getLabel());
 	}
 
+	@JsonIgnore
 	@Override
 	public String getLabel() {
 		return getTag().getLabel();

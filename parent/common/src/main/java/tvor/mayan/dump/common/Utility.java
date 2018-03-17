@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -16,6 +17,10 @@ import javax.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+
+import tvor.mayan.dump.common.filers.EntryCabinet;
+import tvor.mayan.dump.common.getters.ListCabinetDocuments;
+import tvor.mayan.dump.common.getters.MayanCabinet;
 
 public class Utility {
 	/**
@@ -109,11 +114,38 @@ public class Utility {
 	 * @throws IOException
 	 *             if there is a problem prompting the user for argument data
 	 */
-	public static Map<ArgKey, String> extractCommandLineData(final String[] arg) throws IOException {
+	public static Map<ArgKey, String> extractCommandLineData(final String[] arg, final String header)
+			throws IOException {
 		if (arg.length <= 0) {
-			return Utility.promptForArgs();
+			return Utility.promptForArgs(header);
 		}
 		return Utility.processArgs(arg);
+	}
+
+	static void populateCabinetEntryFrom(final EntryCabinet entry, final MayanCabinet cabinet,
+			final Map<ArgKey, String> argMap) {
+		entry.setDocuments_count(cabinet.getDocuments_count());
+		entry.setDocuments_url(cabinet.getDocuments_url());
+		entry.setFull_path(cabinet.getFull_path());
+		entry.setId(cabinet.getId());
+		entry.setLabel(cabinet.getLabel());
+		entry.setParent(cabinet.getParent());
+		entry.setParent_url(cabinet.getParent_url());
+		entry.setUrl(cabinet.getUrl());
+		String nextUrl = entry.getDocuments_url();
+		do {
+			final ListCabinetDocuments docs = Utility.callApiGetter(ListCabinetDocuments.class, nextUrl, argMap);
+			Arrays.asList(docs.getResults()).forEach(doc -> {
+				entry.getDocument_uuid().add(doc.getUuid());
+			});
+			nextUrl = docs.getNext();
+		} while (nextUrl != null);
+
+		Arrays.asList(cabinet.getChildren()).stream().forEach(child -> {
+			final EntryCabinet e2 = new EntryCabinet();
+			Utility.populateCabinetEntryFrom(e2, child, argMap);
+			// entry.getChildren().add(e2);
+		});
 	}
 
 	/**
@@ -213,13 +245,16 @@ public class Utility {
 	 * the information required to populate the argument map. This method is
 	 * necessary to allow the Main class to be run from inside the Eclipse IDE
 	 * without having to define a special run entry in Eclipse.
+	 * 
+	 * @param header
 	 *
 	 * @return a map of values as entered by the user.
 	 *
 	 * @throws IOException
 	 *             if there is a problem reading data from the terminal
 	 */
-	private static Map<ArgKey, String> promptForArgs() throws IOException {
+	private static Map<ArgKey, String> promptForArgs(final String header) throws IOException {
+		System.out.println(header);
 		final Map<ArgKey, String> rtn = new EnumMap<>(ArgKey.class);
 		rtn.put(ArgKey.MAYAN_BASE_URL, "http://mayan.tvor.support:29880");
 

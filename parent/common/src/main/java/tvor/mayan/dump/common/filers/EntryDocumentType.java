@@ -3,6 +3,8 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import tvor.mayan.dump.common.getters.MayanDocumentType;
 
 public class EntryDocumentType extends AbstractEntry implements Comparable<EntryDocumentType> {
@@ -18,6 +20,7 @@ public class EntryDocumentType extends AbstractEntry implements Comparable<Entry
 		return document_type;
 	}
 
+	@JsonIgnore
 	@Override
 	public String getLabel() {
 		return getDocument_type().getLabel();

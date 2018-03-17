@@ -3,27 +3,27 @@ package tvor.mayan.dump.common.filers;
 import java.util.Set;
 import java.util.TreeSet;
 
+import tvor.mayan.dump.common.getters.MayanCabinet;
 import tvor.mayan.dump.common.getters.ScalarCabinet;
 
 public class EntryCabinet extends ScalarCabinet implements Comparable<EntryCabinet> {
-	private Set<EntryCabinet> children = new TreeSet<>();
 	private Set<String> document_uuid = new TreeSet<>();
+
+	public EntryCabinet() {
+		// do nothing
+	}
+
+	public EntryCabinet(final MayanCabinet cabinet) {
+		super(cabinet);
+	}
 
 	@Override
 	public int compareTo(final EntryCabinet o) {
 		return getFull_path().compareTo(o.getFull_path());
 	}
 
-	public Set<EntryCabinet> getChildren() {
-		return children;
-	}
-
 	public Set<String> getDocument_uuid() {
 		return document_uuid;
-	}
-
-	public void setChildren(final Set<EntryCabinet> children) {
-		this.children = children;
 	}
 
 	public void setDocument_uuid(final Set<String> document_uuid) {
@@ -32,6 +32,10 @@ public class EntryCabinet extends ScalarCabinet implements Comparable<EntryCabin
 
 	@Override
 	public String toString() {
-		return "EntryCabinet [children=" + children + ", document_url=" + document_uuid + "]";
+		return "EntryCabinet [document_uuid=" + document_uuid + ", getDocuments_count()=" + getDocuments_count()
+				+ ", getDocuments_url()=" + getDocuments_url() + ", getFull_path()=" + getFull_path() + ", getId()="
+				+ getId() + ", getLabel()=" + getLabel() + ", getParent()=" + getParent() + ", getParent_url()="
+				+ getParent_url() + ", getUrl()=" + getUrl() + "]";
 	}
+
 }

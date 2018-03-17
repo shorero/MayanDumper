@@ -1,5 +1,7 @@
 package tvor.mayan.dump.common.filers;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import tvor.mayan.dump.common.getters.MayanMetadataType;
 
 public class EntryMetadataType extends AbstractEntry implements Comparable<EntryMetadataType> {
@@ -10,6 +12,7 @@ public class EntryMetadataType extends AbstractEntry implements Comparable<Entry
 		return type.getLabel().compareTo(o.type.getLabel());
 	}
 
+	@JsonIgnore
 	@Override
 	public String getLabel() {
 		return getType().getLabel();

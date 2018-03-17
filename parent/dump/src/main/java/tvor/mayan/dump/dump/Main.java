@@ -10,9 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.client.Client;
@@ -45,7 +44,6 @@ import tvor.mayan.dump.common.filers.FileDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.filers.FileTag;
 import tvor.mayan.dump.common.filers.MetadataTypeAttachment;
-import tvor.mayan.dump.common.getters.ListCabinetDocuments;
 import tvor.mayan.dump.common.getters.ListCabinets;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
 import tvor.mayan.dump.common.getters.ListDocumentVersion;
@@ -100,22 +98,30 @@ public class Main {
 
 	private static void dumpCabinets(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_CABINETS.getFunction());
-		final List<MayanCabinet> cabinetList = new ArrayList<>();
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_CABINETS.getFunction());
+		final Map<Integer, MayanCabinet> cabinetMap = new HashMap<>();
 		do {
 			final ListCabinets result = Utility.callApiGetter(ListCabinets.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(topLevel -> {
-				cabinetList.add(topLevel);
+				cabinetMap.put(topLevel.getId(), topLevel);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
 
 		final FileCabinets cabs = new FileCabinets();
-		cabinetList.stream().forEach(cabinet -> {
-			final EntryCabinet entry = new EntryCabinet();
-			Main.populateCabinetEntryFrom(entry, cabinet, argMap);
+		cabinetMap.values().stream().forEach(cabinet -> {
+			final EntryCabinet entry = new EntryCabinet(cabinet);
+			if (entry.getParent() != null) {
+				final MayanCabinet parent = cabinetMap.get(entry.getParent());
+				if (parent == null) {
+					throw new RuntimeException("No parent for " + entry);
+				}
+				entry.setParent_path(parent.getFull_path());
+			}
 			cabs.getCabinets().add(entry);
 		});
+
+		// TODO finish me -- add documents in the cabinet
 
 		final Path descriptionTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
 				DumpFile.CABINETS.getFileName());
@@ -258,7 +264,7 @@ public class Main {
 	}
 
 	public static void main(final String[] arg) throws JsonGenerationException, JsonMappingException, IOException {
-		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg);
+		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg, "Mayan-EDMS Database Dumper");
 		final ObjectMapper mapper = new ObjectMapper();
 		Main.dumpTags(mapper, argMap);
 		Main.dumpMetadataType(mapper, argMap);
@@ -267,29 +273,4 @@ public class Main {
 		Main.dumpDocuments(mapper, argMap);
 	}
 
-	private static void populateCabinetEntryFrom(final EntryCabinet entry, final MayanCabinet cabinet,
-			final Map<ArgKey, String> argMap) {
-		entry.setDocuments_count(cabinet.getDocuments_count());
-		entry.setDocuments_url(cabinet.getDocuments_url());
-		entry.setFull_path(cabinet.getFull_path());
-		entry.setId(cabinet.getId());
-		entry.setLabel(cabinet.getLabel());
-		entry.setParent(cabinet.getParent());
-		entry.setParent_url(cabinet.getParent_url());
-		entry.setUrl(cabinet.getUrl());
-		String nextUrl = entry.getDocuments_url();
-		do {
-			final ListCabinetDocuments docs = Utility.callApiGetter(ListCabinetDocuments.class, nextUrl, argMap);
-			Arrays.asList(docs.getResults()).forEach(doc -> {
-				entry.getDocument_uuid().add(doc.getUuid());
-			});
-			nextUrl = docs.getNext();
-		} while (nextUrl != null);
-
-		Arrays.asList(cabinet.getChildren()).stream().forEach(child -> {
-			final EntryCabinet e2 = new EntryCabinet();
-			Main.populateCabinetEntryFrom(e2, child, argMap);
-			entry.getChildren().add(e2);
-		});
-	}
 }
