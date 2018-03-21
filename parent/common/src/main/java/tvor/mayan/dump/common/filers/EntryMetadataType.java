@@ -2,14 +2,16 @@ package tvor.mayan.dump.common.filers;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanMetadataType;
 
-public class EntryMetadataType extends AbstractEntry implements Comparable<EntryMetadataType> {
+public class EntryMetadataType extends AbstractLabeledEntity {
 	private MayanMetadataType type;
 
+	@JsonIgnore
 	@Override
-	public int compareTo(final EntryMetadataType o) {
-		return type.getLabel().compareTo(o.type.getLabel());
+	public Integer getId() {
+		return type.getId();
 	}
 
 	@JsonIgnore

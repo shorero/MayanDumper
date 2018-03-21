@@ -61,44 +61,53 @@ import tvor.mayan.dump.common.posters.PostResponse;
 public class Main {
 
 	private static void attachAllowedMetadataTypes(final Map<ArgKey, String> argMap,
-			final Map<String, EntryDocumentType> entries, final Map<String, NewDocumentTypeResponse> responses,
-			final Map<String, NewMetadataTypeResponse> metadataTypes) {
-		entries.values().stream().forEach(entry -> {
-			final Set<MetadataTypeAttachment> desiredSet = new TreeSet<>(entry.getMetadata_attachment());
+			final Map<String, Set<EntryDocumentType>> entries,
+			final Map<String, Set<NewDocumentTypeResponse>> responses,
+			final Map<String, Set<NewMetadataTypeResponse>> metadataTypes) {
+		entries.values().stream().flatMap(s -> s.stream()).forEach(entry -> {
+			final Set<MetadataTypeAttachment> desiredSet = new TreeSet<>();
+			entry.getMetadata_attachment().stream().forEach(a -> {
+				desiredSet.add(a);
+			});
 
 			final String documentLabel = entry.getLabel();
-			final NewDocumentTypeResponse docTypeResponse = responses.get(documentLabel);
-			if (docTypeResponse == null) {
+			final Set<NewDocumentTypeResponse> docTypeResponseSet = responses.get(documentLabel);
+			if (docTypeResponseSet == null) {
 				throw new RuntimeException("No new document-type response for label " + documentLabel);
 			}
 
-			// get the metadata types already attached to the document type
-			// first, build the proper URL
-			final String function = RestFunction.METADATA_TYPES_FOR_DOCUMENT_TYPE.getFunction(docTypeResponse.getId());
-			final String functionUrl = Utility.buildUrl(argMap, function);
-			// then use it to grab the metadata types for this document type
-			String nextUrl = functionUrl;
-			do {
-				final ListMetadataTypesForDocumentTypes theList = Utility
-						.callApiGetter(ListMetadataTypesForDocumentTypes.class, nextUrl, argMap);
-				Arrays.asList(theList.getResults()).stream().forEach(typePair -> {
-					// remove each existing type from the desired set
-					final MetadataTypeAttachment temp = new MetadataTypeAttachment();
-					temp.setMetadata_type_label(typePair.getMetadata_type().getLabel());
-					desiredSet.remove(temp);
-				});
-				nextUrl = theList.getNext();
-			} while (nextUrl != null);
+			docTypeResponseSet.stream().forEach(docTypeResponse -> {
+				// get the metadata types already attached to the document type
+				// first, build the proper URL
+				final String function = RestFunction.METADATA_TYPES_FOR_DOCUMENT_TYPE
+						.getFunction(docTypeResponse.getId());
+				final String functionUrl = Utility.buildUrl(argMap, function);
+				// then use it to grab the metadata types for this document type
+				String nextUrl = functionUrl;
+				do {
+					final ListMetadataTypesForDocumentTypes theList = Utility
+							.callApiGetter(ListMetadataTypesForDocumentTypes.class, nextUrl, argMap);
+					Arrays.asList(theList.getResults()).stream().forEach(typePair -> {
+						// remove each existing type from the desired set
+						final MetadataTypeAttachment temp = new MetadataTypeAttachment();
+						temp.setMetadata_type_label(typePair.getMetadata_type().getLabel());
+						temp.setId(typePair.getMetadata_type().getId());
+						desiredSet.remove(temp);
+					});
+					nextUrl = theList.getNext();
+				} while (nextUrl != null);
+			});
 
 			// finally, attach any missing types
 			desiredSet.stream().forEach(attachment -> {
-				final NewMetadataTypeResponse metadataTypeResponse = metadataTypes
+				final Set<NewMetadataTypeResponse> metadataTypeResponse = metadataTypes
 						.get(attachment.getMetadata_type_label());
 				if (metadataTypeResponse == null) {
 					throw new RuntimeException("No new metadata-type response for " + attachment);
 				}
 				final NewMetadataTypeAttachment newAttachment = new NewMetadataTypeAttachment();
 				newAttachment.setMetadata_type_pk(metadataTypeResponse.getId());
+				newAttachment.setLabel(metadataTypeResponse.getLabel());
 				newAttachment.setRequired(attachment.isRequired());
 				Utility.callApiPoster(newAttachment, NewMetadataTypeAttachmentResponse.class, functionUrl, argMap,
 						false);
@@ -111,8 +120,8 @@ public class Main {
 	 * @throws IOException
 	 */
 	public static void main(final String[] arg) throws IOException {
-		final Map<RestFunction, Map<String, ? extends AbstractEntry>> contentMap = new EnumMap<>(RestFunction.class);
-		final Map<RestFunction, Map<String, ? extends PostResponse>> responseMap = new EnumMap<>(RestFunction.class);
+		final Map<RestFunction, Map<SortKey, ? extends AbstractEntry>> contentMap = new EnumMap<>(RestFunction.class);
+		final Map<RestFunction, Map<SortKey, ? extends PostResponse>> responseMap = new EnumMap<>(RestFunction.class);
 		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg, "Mayan-EDMS Database Restorer");
 		final ObjectMapper mapper = new ObjectMapper();
 		Main.restoreTags(mapper, argMap, contentMap, responseMap);
@@ -259,20 +268,21 @@ public class Main {
 	}
 
 	private static void restoreTags(final ObjectMapper mapper, final Map<ArgKey, String> argMap,
-			final Map<RestFunction, Map<String, ? extends AbstractEntry>> contentMap,
-			final Map<RestFunction, Map<String, ? extends PostResponse>> responseMap)
+			final Map<RestFunction, Map<SortKey, ? extends AbstractEntry>> contentMap,
+			final Map<RestFunction, Map<SortKey, ? extends PostResponse>> responseMap)
 			throws JsonParseException, JsonMappingException, IOException {
-		final Map<String, NewTagResponse> responses = new TreeMap<>();
-		final Map<String, EntryTag> entries = new TreeMap<>();
+		final Map<SortKey, NewTagResponse> responses = new TreeMap<>();
+		final Map<SortKey, EntryTag> entries = new TreeMap<>();
 		responseMap.put(RestFunction.MAYAN_TAGS, responses);
 		contentMap.put(RestFunction.MAYAN_TAGS, entries);
 
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_TAGS.getFunction());
-		final Map<String, MayanTag> existingTag = new HashMap<>();
+		final Map<SortKey, MayanTag> existingTag = new HashMap<>();
 		do {
 			final ListTagsResult result = Utility.callApiGetter(ListTagsResult.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(currentTag -> {
-				existingTag.put(currentTag.getLabel(), currentTag);
+				final SortKey k = new SortKey(currentTag.getLabel(), currentTag.getId());
+				existingTag.put(k, currentTag);
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
@@ -283,7 +293,8 @@ public class Main {
 		final FileTag incoming = mapper.readValue(f, FileTag.class);
 
 		incoming.getTag_list().stream().forEach(t -> {
-			entries.put(t.getLabel(), t);
+			final SortKey k = new SortKey(t.getLabel(), t.getTag().getId());
+			entries.put(k, t);
 			final MayanTag e = existingTag.get(t.getLabel());
 			if (e != null) {
 				final NewTagResponse r = new NewTagResponse(e);

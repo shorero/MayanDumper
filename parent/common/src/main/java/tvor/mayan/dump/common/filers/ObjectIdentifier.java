@@ -1,16 +1,27 @@
-package tvor.mayan.dump.common;
+package tvor.mayan.dump.common.filers;
 
-public class SortKey implements Comparable<SortKey> {
-	private final Integer id;
-	private final String label;
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 
-	public SortKey(final String label, final Integer id) {
-		this.id = id;
+public class ObjectIdentifier implements Comparable<ObjectIdentifier> {
+	private Integer id;
+	private String label;
+
+	public ObjectIdentifier() {
+		// do nothing
+	}
+
+	public ObjectIdentifier(final AbstractLabeledEntity obj) {
+		label = obj.getLabel();
+		id = obj.getId();
+	}
+
+	public ObjectIdentifier(final String label, final Integer id) {
 		this.label = label;
+		this.id = id;
 	}
 
 	@Override
-	public int compareTo(final SortKey o) {
+	public int compareTo(final ObjectIdentifier o) {
 		final int x = label.compareTo(o.label);
 		if (x != 0) {
 			return x;
@@ -29,7 +40,7 @@ public class SortKey implements Comparable<SortKey> {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final SortKey other = (SortKey) obj;
+		final ObjectIdentifier other = (ObjectIdentifier) obj;
 		if (id == null) {
 			if (other.id != null) {
 				return false;
@@ -64,9 +75,17 @@ public class SortKey implements Comparable<SortKey> {
 		return result;
 	}
 
+	public void setId(final Integer id) {
+		this.id = id;
+	}
+
+	public void setLabel(final String label) {
+		this.label = label;
+	}
+
 	@Override
 	public String toString() {
-		return "SortKey [id=" + id + ", label=" + label + "]";
+		return "ObjectIdentifier [id=" + id + ", label=" + label + "]";
 	}
 
 }

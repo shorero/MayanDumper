@@ -1,25 +1,38 @@
-/**
- *
- */
-package tvor.mayan.dump.common.getters;
+package tvor.mayan.dump.common.filers;
 
 import tvor.mayan.dump.common.AbstractLabeledEntity;
+import tvor.mayan.dump.common.getters.MayanDocument;
 
-/**
- * @author shore
- *
- */
-public class MayanDocument extends AbstractLabeledEntity {
+public class DocumentSummary extends AbstractLabeledEntity {
 	private String date_added;
 	private String description;
-	private MayanDocumentType document_type;
+	private ObjectIdentifier document_type;
 	private Integer id;
 	private String label;
 	private String language;
-	private MayanVersionInfo latest_version;
+	private ObjectIdentifier latest_version;
 	private String url;
 	private String uuid;
 	private String versions_url;
+
+	public DocumentSummary() {
+		// do nothing
+	}
+
+	public DocumentSummary(final MayanDocument document) {
+		date_added = document.getDate_added();
+		description = document.getDescription();
+		document_type = new ObjectIdentifier(document.getDocument_Type().getLabel(),
+				document.getDocument_Type().getId());
+		id = document.getId();
+		label = document.getLabel();
+		language = document.getLanguage();
+		latest_version = new ObjectIdentifier(document.getLatest_version().getLabel(),
+				document.getLatest_version().getId());
+		url = document.getUrl();
+		uuid = document.getUuid();
+		versions_url = document.getVersions_url();
+	}
 
 	public String getDate_added() {
 		return date_added;
@@ -29,7 +42,7 @@ public class MayanDocument extends AbstractLabeledEntity {
 		return description;
 	}
 
-	public MayanDocumentType getDocument_Type() {
+	public ObjectIdentifier getDocument_type() {
 		return document_type;
 	}
 
@@ -47,7 +60,7 @@ public class MayanDocument extends AbstractLabeledEntity {
 		return language;
 	}
 
-	public MayanVersionInfo getLatest_version() {
+	public ObjectIdentifier getLatest_version() {
 		return latest_version;
 	}
 
@@ -71,8 +84,8 @@ public class MayanDocument extends AbstractLabeledEntity {
 		this.description = description;
 	}
 
-	public void setDocument_type(final MayanDocumentType type) {
-		document_type = type;
+	public void setDocument_type(final ObjectIdentifier document_type) {
+		this.document_type = document_type;
 	}
 
 	public void setId(final Integer id) {
@@ -87,7 +100,7 @@ public class MayanDocument extends AbstractLabeledEntity {
 		this.language = language;
 	}
 
-	public void setLatest_version(final MayanVersionInfo latest_version) {
+	public void setLatest_version(final ObjectIdentifier latest_version) {
 		this.latest_version = latest_version;
 	}
 
@@ -105,7 +118,7 @@ public class MayanDocument extends AbstractLabeledEntity {
 
 	@Override
 	public String toString() {
-		return "TaggedDocument [date_added=" + date_added + ", description=" + description + ", document_type="
+		return "DocumentSummary [date_added=" + date_added + ", description=" + description + ", document_type="
 				+ document_type + ", id=" + id + ", label=" + label + ", language=" + language + ", latest_version="
 				+ latest_version + ", url=" + url + ", uuid=" + uuid + ", versions_url=" + versions_url + "]";
 	}

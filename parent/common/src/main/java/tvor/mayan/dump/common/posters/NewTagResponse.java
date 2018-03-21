@@ -1,10 +1,11 @@
 package tvor.mayan.dump.common.posters;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanTag;
 
-public class NewTagResponse extends PostResponse implements Comparable<NewTagResponse> {
+public class NewTagResponse extends AbstractLabeledEntity {
 	private String color;
-	private int id;
+	private Integer id;
 	private String label;
 
 	public NewTagResponse() {
@@ -17,19 +18,16 @@ public class NewTagResponse extends PostResponse implements Comparable<NewTagRes
 		label = e.getLabel();
 	}
 
-	@Override
-	public int compareTo(final NewTagResponse o) {
-		return label.compareTo(o.label);
-	}
-
 	public String getColor() {
 		return color;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -38,7 +36,7 @@ public class NewTagResponse extends PostResponse implements Comparable<NewTagRes
 		this.color = color;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

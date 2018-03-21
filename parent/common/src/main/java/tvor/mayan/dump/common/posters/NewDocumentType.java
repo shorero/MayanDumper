@@ -2,13 +2,14 @@ package tvor.mayan.dump.common.posters;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanDocumentType;
 
-public class NewDocumentType implements Comparable<NewDocumentType> {
+public class NewDocumentType extends AbstractLabeledEntity {
 	private int delete_time_period;
 	private String delete_time_unit;
 	@JsonIgnore
-	private int id;
+	private Integer id;
 	private String label;
 	private int trash_time_period;
 	private String trash_time_unit;
@@ -26,11 +27,6 @@ public class NewDocumentType implements Comparable<NewDocumentType> {
 		id = t.getId();
 	}
 
-	@Override
-	public int compareTo(final NewDocumentType o) {
-		return label.compareTo(o.label);
-	}
-
 	public int getDelete_time_period() {
 		return delete_time_period;
 	}
@@ -39,10 +35,12 @@ public class NewDocumentType implements Comparable<NewDocumentType> {
 		return delete_time_unit;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -63,7 +61,7 @@ public class NewDocumentType implements Comparable<NewDocumentType> {
 		this.delete_time_unit = delete_time_unit;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

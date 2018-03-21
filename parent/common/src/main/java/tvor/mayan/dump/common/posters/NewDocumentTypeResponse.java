@@ -1,13 +1,14 @@
 package tvor.mayan.dump.common.posters;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanDocumentType;
 
-public class NewDocumentTypeResponse extends PostResponse implements Comparable<NewDocumentTypeResponse> {
+public class NewDocumentTypeResponse extends AbstractLabeledEntity {
 	private int delete_time_period;
 	private String delete_time_unit;
 	private Integer documents_count;
 	private String documents_url;
-	private int id;
+	private Integer id;
 	private String label;
 	private int trash_time_period;
 	private String trash_time_unit;
@@ -29,11 +30,6 @@ public class NewDocumentTypeResponse extends PostResponse implements Comparable<
 		url = e.getUrl();
 	}
 
-	@Override
-	public int compareTo(final NewDocumentTypeResponse o) {
-		return label.compareTo(o.label);
-	}
-
 	public int getDelete_time_period() {
 		return delete_time_period;
 	}
@@ -50,10 +46,12 @@ public class NewDocumentTypeResponse extends PostResponse implements Comparable<
 		return documents_url;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -86,7 +84,7 @@ public class NewDocumentTypeResponse extends PostResponse implements Comparable<
 		this.documents_url = documents_url;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

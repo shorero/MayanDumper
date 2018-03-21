@@ -5,26 +5,23 @@ package tvor.mayan.dump.common.getters;
 
 import java.util.Arrays;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
+
 /**
  * @author shore
  *
  */
-public class MayanDocumentType implements Comparable<MayanDocumentType> {
+public class MayanDocumentType extends AbstractLabeledEntity {
 	private int delete_time_period;
 	private String delete_time_unit;
 	private String documents_count;
 	private String documents_url;
 	private String[] filenames;
-	private int id;
+	private Integer id;
 	private String label;
 	private int trash_time_period;
 	private String trash_time_unit;
 	private String url;
-
-	@Override
-	public int compareTo(final MayanDocumentType o) {
-		return getLabel().compareTo(o.getLabel());
-	}
 
 	public int getDelete_time_period() {
 		return delete_time_period;
@@ -46,10 +43,12 @@ public class MayanDocumentType implements Comparable<MayanDocumentType> {
 		return filenames;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -86,7 +85,7 @@ public class MayanDocumentType implements Comparable<MayanDocumentType> {
 		this.filenames = filenames;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

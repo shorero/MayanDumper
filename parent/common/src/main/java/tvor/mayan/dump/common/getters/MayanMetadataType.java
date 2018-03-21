@@ -2,10 +2,12 @@ package tvor.mayan.dump.common.getters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MayanMetadataType implements Comparable<MayanMetadataType> {
+import tvor.mayan.dump.common.AbstractLabeledEntity;
+
+public class MayanMetadataType extends AbstractLabeledEntity {
 	@JsonProperty("default")
 	private String defaultValue;
-	private int id;
+	private Integer id;
 	private String label;
 	private String lookup;
 	private String name;
@@ -13,19 +15,16 @@ public class MayanMetadataType implements Comparable<MayanMetadataType> {
 	private String url;
 	private String validation;
 
-	@Override
-	public int compareTo(final MayanMetadataType o) {
-		return getLabel().compareTo(o.getLabel());
-	}
-
 	public String getDefaultValue() {
 		return defaultValue;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -54,7 +53,7 @@ public class MayanMetadataType implements Comparable<MayanMetadataType> {
 		this.defaultValue = defaultValue;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

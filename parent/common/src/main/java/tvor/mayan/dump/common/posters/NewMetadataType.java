@@ -1,12 +1,16 @@
 package tvor.mayan.dump.common.posters;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanMetadataType;
 
-public class NewMetadataType implements Comparable<NewMetadataType> {
+public class NewMetadataType extends AbstractLabeledEntity {
 	@JsonProperty("default")
 	private String defaultValue;
+	@JsonIgnore
+	private Integer id;
 	private String label;
 	private String lookup;
 	private String name;
@@ -24,17 +28,19 @@ public class NewMetadataType implements Comparable<NewMetadataType> {
 		name = t.getName();
 		parser = t.getParser();
 		validation = t.getValidation();
-	}
-
-	@Override
-	public int compareTo(final NewMetadataType o) {
-		return label.compareTo(o.label);
+		id = t.getId();
 	}
 
 	public String getDefaultValue() {
 		return defaultValue;
 	}
 
+	@Override
+	public Integer getId() {
+		return id;
+	}
+
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -57,6 +63,10 @@ public class NewMetadataType implements Comparable<NewMetadataType> {
 
 	public void setDefaultValue(final String defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+
+	public void setId(final Integer id) {
+		this.id = id;
 	}
 
 	public void setLabel(final String label) {

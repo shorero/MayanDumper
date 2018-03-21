@@ -2,6 +2,8 @@ package tvor.mayan.dump.common;
 
 public enum DumpFile {
 	//
+	CABINET_DOCUMENTS("cabinetDocuments.json"),
+	//
 	CABINETS("cabinets.json"),
 	//
 	DOCUMENT_CONTENTS("documents"),
@@ -10,7 +12,15 @@ public enum DumpFile {
 	//
 	DOCUMENT_TYPES("documentTypes.json"),
 	//
+	DOCUMENT_VERSIONS("documentVersions.json"),
+	//
+	METADATA_DOCUMENT_TYPES("metadataDocumentTypes.json"),
+	//
 	METADATA_TYPES("metadataTypes.json"),
+	//
+	METADATA_VALUES("metadataValues.json"),
+	//
+	TAGGED_DOCUMENT("taggedDocument.json"),
 	//
 	TAGS("tags.json"),
 	//

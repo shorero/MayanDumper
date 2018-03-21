@@ -1,17 +1,14 @@
 package tvor.mayan.dump.common.getters;
 
-public class MayanTag implements Comparable<MayanTag> {
+import tvor.mayan.dump.common.AbstractLabeledEntity;
+
+public class MayanTag extends AbstractLabeledEntity {
 	private String color;
 	private int documents_count;
 	private String documents_url;
-	private int id;
+	private Integer id;
 	private String label;
 	private String url;
-
-	@Override
-	public int compareTo(final MayanTag o) {
-		return label.compareTo(o.label);
-	}
 
 	public String getColor() {
 		return color;
@@ -25,10 +22,12 @@ public class MayanTag implements Comparable<MayanTag> {
 		return documents_url;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -49,7 +48,7 @@ public class MayanTag implements Comparable<MayanTag> {
 		this.documents_url = documents_url;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

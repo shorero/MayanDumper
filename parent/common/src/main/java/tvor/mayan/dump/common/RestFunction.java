@@ -11,11 +11,13 @@ import java.text.MessageFormat;
  */
 public enum RestFunction {
 	//
+	LIST_DOCUMENTS_FOR_CABINET("api/cabinets/cabinets/{0}/documents"),
+	//
 	LIST_DOCUMENTS_FOR_TAG("api/tags/tags/{0}/documents/"),
 	//
 	LIST_MAYAN_DOCUMENTS("api/documents/documents/"),
 	//
-	LIST_METADATA_TYPES_FOR_DOCUMENT_TYPE("api/metadata/document_types/{0}/metadata_types/"),
+	LIST_METADATA_VALUES_FOR_DOCUMENT("/api/metadata/documents/{0}/metadata"),
 	//
 	LIST_VERSIONS_FOR_DOCUMENT("api/documents/documents/{0}/versions/"),
 	//

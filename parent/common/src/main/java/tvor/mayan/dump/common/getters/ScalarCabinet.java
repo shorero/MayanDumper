@@ -1,15 +1,16 @@
 package tvor.mayan.dump.common.getters;
 
-import tvor.mayan.dump.common.filers.AbstractEntry;
+import tvor.mayan.dump.common.AbstractLabeledEntity;
+import tvor.mayan.dump.common.filers.ObjectIdentifier;
 
-public class ScalarCabinet extends AbstractEntry {
+public class ScalarCabinet extends AbstractLabeledEntity {
 	private int documents_count;
 	private String documents_url;
 	private String full_path;
-	private int id;
+	private Integer id;
 	private String label;
 	private Integer parent;
-	private String parent_path;
+	private ObjectIdentifier parent_id;
 	private String parent_url;
 	private String url;
 
@@ -40,7 +41,8 @@ public class ScalarCabinet extends AbstractEntry {
 		return full_path;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
@@ -53,8 +55,8 @@ public class ScalarCabinet extends AbstractEntry {
 		return parent;
 	}
 
-	public String getParent_path() {
-		return parent_path;
+	public ObjectIdentifier getParent_id() {
+		return parent_id;
 	}
 
 	public String getParent_url() {
@@ -77,7 +79,7 @@ public class ScalarCabinet extends AbstractEntry {
 		this.full_path = full_path;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 
@@ -89,8 +91,8 @@ public class ScalarCabinet extends AbstractEntry {
 		this.parent = parent;
 	}
 
-	public void setParent_path(final String parent_path) {
-		this.parent_path = parent_path;
+	public void setParent_id(final ObjectIdentifier parent_id) {
+		this.parent_id = parent_id;
 	}
 
 	public void setParent_url(final String parent_url) {

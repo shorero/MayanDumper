@@ -2,15 +2,18 @@ package tvor.mayan.dump.common.posters;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanDocument;
 
-public class NewDocument implements Comparable<NewDocument> {
+public class NewDocument extends AbstractLabeledEntity {
 	private String description;
 	private int document_type;
 	@JsonIgnore
 	private String document_type_label;
 	@JsonIgnore
 	private String file_name;
+	@JsonIgnore
+	private Integer id;
 	private String label;
 	private String language;
 
@@ -24,11 +27,7 @@ public class NewDocument implements Comparable<NewDocument> {
 		document_type_label = d.getDocument_Type().getLabel();
 		label = d.getLabel();
 		language = d.getLanguage();
-	}
-
-	@Override
-	public int compareTo(final NewDocument o) {
-		return label.compareTo(o.label);
+		id = d.getId();
 	}
 
 	public String getDescription() {
@@ -47,6 +46,12 @@ public class NewDocument implements Comparable<NewDocument> {
 		return file_name;
 	}
 
+	@Override
+	public Integer getId() {
+		return id;
+	}
+
+	@Override
 	public String getLabel() {
 		return label;
 	}

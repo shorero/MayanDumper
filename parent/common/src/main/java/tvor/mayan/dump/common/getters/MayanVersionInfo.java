@@ -3,11 +3,13 @@
  */
 package tvor.mayan.dump.common.getters;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
+
 /**
  * @author shore
  *
  */
-public class MayanVersionInfo implements Comparable<MayanVersionInfo> {
+public class MayanVersionInfo extends AbstractLabeledEntity {
 	private String checksum;
 	private String comment;
 	private String document_url;
@@ -20,9 +22,22 @@ public class MayanVersionInfo implements Comparable<MayanVersionInfo> {
 	private String timestamp;
 	private String url;
 
-	@Override
-	public int compareTo(final MayanVersionInfo o) {
-		return timestamp.compareTo(o.timestamp);
+	public MayanVersionInfo() {
+		// do nothing
+	}
+
+	public MayanVersionInfo(final MayanVersionInfo version) {
+		checksum = version.getChecksum();
+		comment = version.getComment();
+		document_url = version.getDocument_url();
+		download_url = version.getDownload_url();
+		encoding = version.getEncoding();
+		file = version.getFile();
+		mimetype = version.getMimetype();
+		pages_url = version.getPages_url();
+		size = version.getSize();
+		timestamp = version.getTimestamp();
+		url = version.getUrl();
 	}
 
 	public String getChecksum() {
@@ -47,6 +62,16 @@ public class MayanVersionInfo implements Comparable<MayanVersionInfo> {
 
 	public String getFile() {
 		return file;
+	}
+
+	@Override
+	public final Integer getId() {
+		return null;
+	}
+
+	@Override
+	public final String getLabel() {
+		return checksum;
 	}
 
 	public String getMimetype() {

@@ -9,47 +9,20 @@ import java.util.Arrays;
  * @author shore
  *
  */
-public class ListDocuments {
-    private int count;
-    private String next;
-    private String previous;
-    private MayanDocument[] results;
+public class ListDocuments extends ListResult {
+	private MayanDocument[] results;
 
-    public int getCount() {
-        return count;
-    }
+	public MayanDocument[] getResults() {
+		return results;
+	}
 
-    public String getNext() {
-        return next;
-    }
+	public void setResults(final MayanDocument[] results) {
+		this.results = results;
+	}
 
-    public String getPrevious() {
-        return previous;
-    }
-
-    public MayanDocument[] getResults() {
-        return results;
-    }
-
-    public void setCount(final int count) {
-        this.count = count;
-    }
-
-    public void setNext(final String next) {
-        this.next = next;
-    }
-
-    public void setPrevious(final String previous) {
-        this.previous = previous;
-    }
-
-    public void setResults(final MayanDocument[] results) {
-        this.results = results;
-    }
-
-    @Override
-    public String toString() {
-        return "TaggedDocuments [count=" + count + ", next=" + next + ", previous=" + previous + ", results="
-                + Arrays.toString(results) + "]";
-    }
+	@Override
+	public String toString() {
+		return "TaggedDocuments [count=" + getCount() + ", next=" + getNext() + ", previous=" + getPrevious()
+				+ ", results=" + Arrays.toString(results) + "]";
+	}
 }

@@ -2,12 +2,13 @@ package tvor.mayan.dump.common.posters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanMetadataType;
 
-public class NewMetadataTypeResponse extends PostResponse implements Comparable<NewMetadataTypeResponse> {
+public class NewMetadataTypeResponse extends AbstractLabeledEntity {
 	@JsonProperty("default")
 	private String defaultValue;
-	private int id;
+	private Integer id;
 	private String label;
 	private String lookup;
 	private String name;
@@ -30,19 +31,16 @@ public class NewMetadataTypeResponse extends PostResponse implements Comparable<
 		validation = e.getValidation();
 	}
 
-	@Override
-	public int compareTo(final NewMetadataTypeResponse o) {
-		return getLabel().compareTo(o.getLabel());
-	}
-
 	public String getDefaultValue() {
 		return defaultValue;
 	}
 
-	public int getId() {
+	@Override
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public String getLabel() {
 		return label;
 	}
@@ -71,7 +69,7 @@ public class NewMetadataTypeResponse extends PostResponse implements Comparable<
 		this.defaultValue = defaultValue;
 	}
 
-	public void setId(final int id) {
+	public void setId(final Integer id) {
 		this.id = id;
 	}
 

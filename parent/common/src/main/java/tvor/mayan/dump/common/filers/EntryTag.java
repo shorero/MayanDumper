@@ -1,19 +1,17 @@
 package tvor.mayan.dump.common.filers;
 
-import java.util.Set;
-import java.util.TreeSet;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import tvor.mayan.dump.common.AbstractLabeledEntity;
 import tvor.mayan.dump.common.getters.MayanTag;
 
-public class EntryTag extends AbstractEntry implements Comparable<EntryTag> {
+public class EntryTag extends AbstractLabeledEntity {
 	private MayanTag tag;
-	private Set<String> tagged_uuid = new TreeSet<>();
 
+	@JsonIgnore
 	@Override
-	public int compareTo(final EntryTag o) {
-		return tag.getLabel().compareTo(o.tag.getLabel());
+	public Integer getId() {
+		return tag.getId();
 	}
 
 	@JsonIgnore
@@ -26,16 +24,8 @@ public class EntryTag extends AbstractEntry implements Comparable<EntryTag> {
 		return tag;
 	}
 
-	public Set<String> getTagged_uuid() {
-		return tagged_uuid;
-	}
-
 	public void setTag(final MayanTag tag) {
 		this.tag = tag;
-	}
-
-	public void setTagged_uuid(final Set<String> tagged_uuid) {
-		this.tagged_uuid = tagged_uuid;
 	}
 
 }
