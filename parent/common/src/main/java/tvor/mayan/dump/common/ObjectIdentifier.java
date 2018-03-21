@@ -1,6 +1,4 @@
-package tvor.mayan.dump.common.filers;
-
-import tvor.mayan.dump.common.AbstractLabeledEntity;
+package tvor.mayan.dump.common;
 
 public class ObjectIdentifier implements Comparable<ObjectIdentifier> {
 	private Integer id;
@@ -22,11 +20,7 @@ public class ObjectIdentifier implements Comparable<ObjectIdentifier> {
 
 	@Override
 	public int compareTo(final ObjectIdentifier o) {
-		final int x = label.compareTo(o.label);
-		if (x != 0) {
-			return x;
-		}
-		return id.compareTo(o.id);
+		return label.compareTo(o.label);
 	}
 
 	@Override
@@ -41,13 +35,6 @@ public class ObjectIdentifier implements Comparable<ObjectIdentifier> {
 			return false;
 		}
 		final ObjectIdentifier other = (ObjectIdentifier) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
 		if (label == null) {
 			if (other.label != null) {
 				return false;
@@ -70,7 +57,6 @@ public class ObjectIdentifier implements Comparable<ObjectIdentifier> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (id == null ? 0 : id.hashCode());
 		result = prime * result + (label == null ? 0 : label.hashCode());
 		return result;
 	}

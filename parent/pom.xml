@@ -1,18 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>tvor.mayan.dump</groupId>
-  <artifactId>dumper-parent</artifactId>
-  <version>1.0.0</version>
-  <packaging>pom</packaging>
-  <name>Mayan Dumper Parent</name>
-  <description>Maven parent for the Mayan dump-restore applications</description>
-  
-  <modules>
-  	<module>dump</module>
-  	<module>restore</module>
-  	<module>common</module>
-  </modules>
-  
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>tvor.mayan.dump</groupId>
+	<artifactId>dumper-parent</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	<name>Mayan Dumper Parent</name>
+	<description>Maven parent for the Mayan dump-restore applications</description>
+
+	<modules>
+		<module>dump</module>
+		<module>restore</module>
+		<module>common</module>
+	</modules>
+
 	<properties>
 		<compiler-version>3.7.0</compiler-version>
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -26,6 +27,7 @@
 		<jersey-media-version>2.26</jersey-media-version>
 		<junit-version>4.12</junit-version>
 		<mariadb-version>2.2.2</mariadb-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<shade-version>3.1.0</shade-version>
 		<source.plugin.version>3.0.1</source.plugin.version>
 	</properties>

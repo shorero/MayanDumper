@@ -1,7 +1,7 @@
 package tvor.mayan.dump.common.getters;
 
 import tvor.mayan.dump.common.AbstractLabeledEntity;
-import tvor.mayan.dump.common.filers.ObjectIdentifier;
+import tvor.mayan.dump.common.ObjectIdentifier;
 
 public class ScalarCabinet extends AbstractLabeledEntity {
 	private int documents_count;

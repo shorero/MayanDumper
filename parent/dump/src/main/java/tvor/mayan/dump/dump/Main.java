@@ -12,7 +12,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import tvor.mayan.dump.common.ArgKey;
 import tvor.mayan.dump.common.DumpFile;
+import tvor.mayan.dump.common.ObjectIdentifier;
 import tvor.mayan.dump.common.ResponseFilter;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
@@ -37,6 +40,7 @@ import tvor.mayan.dump.common.filers.EntryCabinet;
 import tvor.mayan.dump.common.filers.EntryCabinetDocument;
 import tvor.mayan.dump.common.filers.EntryDocument;
 import tvor.mayan.dump.common.filers.EntryDocumentType;
+import tvor.mayan.dump.common.filers.EntryDocumentVersion;
 import tvor.mayan.dump.common.filers.EntryMetadataDocumentType;
 import tvor.mayan.dump.common.filers.EntryMetadataType;
 import tvor.mayan.dump.common.filers.EntryMetadataValue;
@@ -46,12 +50,12 @@ import tvor.mayan.dump.common.filers.FileCabinetDocument;
 import tvor.mayan.dump.common.filers.FileCabinets;
 import tvor.mayan.dump.common.filers.FileDocument;
 import tvor.mayan.dump.common.filers.FileDocumentType;
+import tvor.mayan.dump.common.filers.FileDocumentVersion;
 import tvor.mayan.dump.common.filers.FileMetadataDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.filers.FileMetadataValue;
 import tvor.mayan.dump.common.filers.FileTag;
 import tvor.mayan.dump.common.filers.FileTaggedDocument;
-import tvor.mayan.dump.common.filers.ObjectIdentifier;
 import tvor.mayan.dump.common.getters.ListCabinetDocuments;
 import tvor.mayan.dump.common.getters.ListCabinets;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
@@ -157,7 +161,9 @@ public class Main {
 			throws JsonGenerationException, JsonMappingException, IOException {
 		final FileDocument docs = new FileDocument();
 		final FileMetadataValue metadata = new FileMetadataValue();
+		final FileDocumentVersion version = new FileDocumentVersion();
 
+		// #1 - dump the document descriptors themselves
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENTS.getFunction());
 		do {
 			final ListDocuments result = Utility.callApiGetter(ListDocuments.class, nextUrl, argMap);
@@ -169,6 +175,7 @@ public class Main {
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
 
+		// #2 - dump the metadata values
 		docs.getDocument_list().stream().forEach(entry -> {
 			final String function = RestFunction.LIST_METADATA_VALUES_FOR_DOCUMENT
 					.getFunction(entry.getDocument().getId());
@@ -183,14 +190,16 @@ public class Main {
 			} while (valuesUrl != null);
 		});
 
+		// #3 - dump version info
 		docs.getDocument_list().stream().forEach(entry -> {
 			final String function = RestFunction.LIST_VERSIONS_FOR_DOCUMENT.getFunction(entry.getDocument().getId());
 			String versionUrl = Utility.buildUrl(argMap, function);
 			do {
 				final ListDocumentVersion versions = Utility.callApiGetter(ListDocumentVersion.class, versionUrl,
 						argMap);
-				Arrays.asList(versions.getResults()).stream().forEach(version -> {
-					entry.getVersions().add(version);
+				Arrays.asList(versions.getResults()).stream().forEach(mvi -> {
+					final EntryDocumentVersion dv = new EntryDocumentVersion(entry, mvi);
+					version.getVersion().add(dv);
 				});
 				versionUrl = versions.getNext();
 			} while (versionUrl != null);
@@ -204,17 +213,19 @@ public class Main {
 		final File metadataFile = metadataTarget.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(metadataFile, metadata);
 
-		docs.getDocument_list().stream().forEach(doc -> {
-			doc.getVersions().stream().forEach(version -> {
-				final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
-						DumpFile.DOCUMENT_CONTENTS.getFileName(), version.getFile());
-				final InputStream in = Main.buildDocumentInputStream(version, argMap, false);
-				try {
-					Files.copy(in, contentTarget, StandardCopyOption.REPLACE_EXISTING);
-				} catch (final Throwable t) {
-					throw new RuntimeException(t);
-				}
-			});
+		final Path versionTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), version.getFile().getFileName());
+		final File versionFile = versionTarget.toFile();
+		mapper.writerWithDefaultPrettyPrinter().writeValue(versionFile, version);
+
+		version.getVersion().stream().forEach(v -> {
+			final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+					DumpFile.DOCUMENT_CONTENTS.getFileName(), v.getFile());
+			final InputStream in = Main.buildDocumentInputStream(v, argMap, false);
+			try {
+				Files.copy(in, contentTarget, StandardCopyOption.REPLACE_EXISTING);
+			} catch (final Throwable t) {
+				throw new RuntimeException(t);
+			}
 		});
 	}
 
@@ -223,6 +234,10 @@ public class Main {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_DOCUMENT_TYPES.getFunction());
 		final FileDocumentType types = new FileDocumentType();
 		final FileMetadataDocumentType metadata = new FileMetadataDocumentType();
+		// For the recovery mapping to work we need the type labels to be unique.
+		// Consider the case where the target instance already has the type but the new
+		// dump has new documents.
+		final Set<String> typeLabel = new HashSet<>();
 
 		do {
 			final ListDocumentTypes result = Utility.callApiGetter(ListDocumentTypes.class, nextUrl, argMap);
@@ -230,6 +245,10 @@ public class Main {
 				final EntryDocumentType q = new EntryDocumentType();
 				q.setDocument_type(t);
 				types.getType_list().add(q);
+				if (typeLabel.contains(q.getLabel())) {
+					throw new RuntimeException("Duplication document-type label: " + q.getLabel());
+				}
+				typeLabel.add(q.getLabel());
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
@@ -326,7 +345,6 @@ public class Main {
 		Main.dumpDocumentType(mapper, argMap);
 		Main.dumpCabinets(mapper, argMap);
 		Main.dumpDocuments(mapper, argMap);
-		// TODO add metadata values for each document
 	}
 
 }

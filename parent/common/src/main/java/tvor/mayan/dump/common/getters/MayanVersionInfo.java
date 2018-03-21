@@ -3,6 +3,8 @@
  */
 package tvor.mayan.dump.common.getters;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import tvor.mayan.dump.common.AbstractLabeledEntity;
 
 /**
@@ -64,13 +66,15 @@ public class MayanVersionInfo extends AbstractLabeledEntity {
 		return file;
 	}
 
+	@JsonIgnore
 	@Override
-	public final Integer getId() {
+	public Integer getId() {
 		return null;
 	}
 
+	@JsonIgnore
 	@Override
-	public final String getLabel() {
+	public String getLabel() {
 		return checksum;
 	}
 

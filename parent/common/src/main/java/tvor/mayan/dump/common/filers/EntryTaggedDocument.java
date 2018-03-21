@@ -1,5 +1,6 @@
 package tvor.mayan.dump.common.filers;
 
+import tvor.mayan.dump.common.ObjectIdentifier;
 import tvor.mayan.dump.common.getters.MayanDocument;
 
 public class EntryTaggedDocument implements Comparable<EntryTaggedDocument> {

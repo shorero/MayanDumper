@@ -1,5 +1,6 @@
 package tvor.mayan.dump.common.filers;
 
+import tvor.mayan.dump.common.ObjectIdentifier;
 import tvor.mayan.dump.common.getters.TypePair;
 
 public class EntryMetadataDocumentType implements Comparable<EntryMetadataDocumentType> {
