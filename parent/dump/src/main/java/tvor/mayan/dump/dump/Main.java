@@ -187,7 +187,7 @@ public class Main {
 		final FileDocumentVersion version = new FileDocumentVersion();
 
 		// #1 - dump the document descriptors themselves
-		String nextUrl = Utility.buildUrl(argMap, RestFunction.LIST_MAYAN_DOCUMENTS.getFunction());
+		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_DOCUMENTS.getFunction());
 		do {
 			final ListDocuments result = Utility.callApiGetter(ListDocuments.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(d -> {

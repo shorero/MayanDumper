@@ -9,7 +9,7 @@ public class FileTaggedDocument implements FileContent {
 
 	@Override
 	public DumpFile getFile() {
-		return DumpFile.TAGGED_DOCUMENT;
+		return DumpFile.DOCUMENTS;
 	}
 
 	public TreeSet<EntryTaggedDocument> getTagged_document() {

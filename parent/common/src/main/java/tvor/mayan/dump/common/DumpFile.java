@@ -14,13 +14,13 @@ public enum DumpFile {
 	//
 	DOCUMENT_VERSIONS("documentVersions.json"),
 	//
+	DOCUMENTS("documents.json"),
+	//
 	METADATA_DOCUMENT_TYPES("metadataDocumentTypes.json"),
 	//
 	METADATA_TYPES("metadataTypes.json"),
 	//
 	METADATA_VALUES("metadataValues.json"),
-	//
-	TAGGED_DOCUMENT("taggedDocument.json"),
 	//
 	TAGS("tags.json"),
 	//

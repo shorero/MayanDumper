@@ -8,7 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,12 +23,16 @@ import tvor.mayan.dump.common.DumpFile;
 import tvor.mayan.dump.common.RestFunction;
 import tvor.mayan.dump.common.Utility;
 import tvor.mayan.dump.common.filers.FileDocumentType;
+import tvor.mayan.dump.common.filers.FileMetadataDocumentType;
 import tvor.mayan.dump.common.filers.FileMetadataType;
 import tvor.mayan.dump.common.getters.ListDocumentTypes;
 import tvor.mayan.dump.common.getters.ListMetadataTypes;
+import tvor.mayan.dump.common.getters.ListMetadataTypesForDocumentTypes;
 import tvor.mayan.dump.common.posters.NewDocumentType;
 import tvor.mayan.dump.common.posters.NewDocumentTypeResponse;
 import tvor.mayan.dump.common.posters.NewMetadataType;
+import tvor.mayan.dump.common.posters.NewMetadataTypeAttachment;
+import tvor.mayan.dump.common.posters.NewMetadataTypeAttachmentResponse;
 import tvor.mayan.dump.common.posters.NewMetadataTypeResponse;
 
 /**
@@ -34,8 +41,92 @@ import tvor.mayan.dump.common.posters.NewMetadataTypeResponse;
  */
 public class Main {
 
+	private static void attachMetadataTypesToDocumentTypes(final Map<ArgKey, String> argMap,
+			final Map<ObjectReference, Integer> objectPkMap, final ObjectMapper mapper)
+			throws JsonParseException, JsonMappingException, IOException {
+		// Read the documentType->metadataType mappings from the file
+		final Path filePath = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+				DumpFile.METADATA_DOCUMENT_TYPES.getFileName());
+		final FileMetadataDocumentType oldAttachments = mapper.readValue(filePath.toFile(),
+				FileMetadataDocumentType.class);
+		final Map<String, Map<String, Boolean>> allowedMap = new HashMap<>();
+		oldAttachments.getData().forEach(entry -> {
+			final String documentType = entry.getDocument_type().getLabel();
+			final String metadataType = entry.getMetadata_type().getLabel();
+			final Boolean required = entry.isRequired();
+			Map<String, Boolean> allowedMetadata = allowedMap.get(documentType);
+			if (allowedMetadata == null) {
+				allowedMetadata = new TreeMap<>();
+				allowedMap.put(documentType, allowedMetadata);
+			}
+			allowedMetadata.put(metadataType, required);
+		});
+
+		// Process each document type in the oldAttachments map. We don't care about all
+		// the document types
+		// in the target database, just the ones that appear in the dumped file
+		allowedMap.entrySet().stream().forEach(entry -> {
+			final String documentTypeLabel = entry.getKey();
+			final Map<String, Boolean> allowedMetadata = entry.getValue();
+
+			final ObjectReference documentTypeRef = new ObjectReference(DumpFile.DOCUMENT_TYPES, documentTypeLabel);
+			final Integer documentTypePk = objectPkMap.get(documentTypeRef);
+			if (documentTypePk == null) {
+				throw new RuntimeException("Document type " + documentTypeLabel + " not known");
+			}
+			Main.attachMetadataTypesToSpecificDocumentType(documentTypeLabel, documentTypePk, allowedMetadata, argMap,
+					objectPkMap, mapper);
+		});
+	}
+
+	private static void attachMetadataTypesToSpecificDocumentType(final String documentTypeLabel,
+			final Integer documentTypePk, final Map<String, Boolean> allowedMetadata, final Map<ArgKey, String> argMap,
+			final Map<ObjectReference, Integer> objectPkMap, final ObjectMapper mapper) {
+		// Create a set of the metadata types already attached to this document type. We
+		// don't care whether
+		// the existing types are required or not.
+		final Set<String> existingMetadata = new HashSet<>();
+		final String existingFunction = RestFunction.METADATA_TYPES_FOR_DOCUMENT_TYPE.getFunction(documentTypePk);
+		final String baseUrl = Utility.buildUrl(argMap, existingFunction);
+		String getterUrl = baseUrl;
+		do {
+			final ListMetadataTypesForDocumentTypes existingList = Utility
+					.callApiGetter(ListMetadataTypesForDocumentTypes.class, getterUrl, argMap);
+			Arrays.asList(existingList.getResults()).stream().forEach(pair -> {
+				final String typeLabel = pair.getMetadata_type().getLabel();
+				pair.isRequired();
+				if (existingMetadata.contains(typeLabel)) {
+					throw new RuntimeException("Duplicate allowed-metadata type label " + typeLabel
+							+ " in document type " + documentTypeLabel);
+				}
+				existingMetadata.add(typeLabel);
+			});
+			getterUrl = existingList.getNext();
+		} while (getterUrl != null);
+
+		// Remove the existing metadata types from the allowed-metadata set
+		allowedMetadata.keySet().removeAll(existingMetadata);
+
+		// Attach the remaining metadata types to the document type
+		allowedMetadata.entrySet().stream().forEach(entry -> {
+			final String metadataLabel = entry.getKey();
+			final Boolean required = entry.getValue();
+			final ObjectReference mdt = new ObjectReference(DumpFile.METADATA_TYPES, metadataLabel);
+			final Integer metadataTypePk = objectPkMap.get(mdt);
+			if (metadataTypePk == null) {
+				throw new RuntimeException(
+						"Unknown metadata type " + metadataLabel + " for document type " + documentTypeLabel);
+			}
+			final NewMetadataTypeAttachment attachment = new NewMetadataTypeAttachment();
+			attachment.setLabel("");
+			attachment.setMetadata_type_pk(metadataTypePk);
+			attachment.setRequired(required);
+			Utility.callApiPoster(attachment, NewMetadataTypeAttachmentResponse.class, baseUrl, argMap);
+		});
+	}
+
 	/**
-	 * @param args
+	 * @param arg
 	 * @throws IOException
 	 */
 	public static void main(final String[] arg) throws IOException {
@@ -44,6 +135,7 @@ public class Main {
 		final Map<ObjectReference, Integer> objectPkMap = new HashMap<>();
 		Main.restoreDocumentType(argMap, objectPkMap, mapper);
 		Main.restoreMetadataType(argMap, objectPkMap, mapper);
+		Main.attachMetadataTypesToDocumentTypes(argMap, objectPkMap, mapper);
 		// TODO Auto-generated method stub
 
 	}
