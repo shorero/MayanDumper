@@ -8,6 +8,14 @@ import tvor.mayan.dump.common.getters.MayanDocument;
 public class EntryDocument extends AbstractLabeledEntity {
 	private MayanDocument document;
 
+	public EntryDocument() {
+		// do nothing
+	}
+
+	public EntryDocument(final MayanDocument d) {
+		document = d;
+	}
+
 	public MayanDocument getDocument() {
 		return document;
 	}

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -117,6 +118,20 @@ public class Utility {
 		return Utility.processArgs(arg);
 	}
 
+	/**
+	 * Print usage information
+	 */
+	public static void printHelp() {
+		final PrintStream p = System.out;
+		p.println("Usage: java Main -b <base URL> -d <data directory> -h -p <Mayan password> -u <Mayan userid>");
+		p.println("Switch interpretations (switches are case-insensitive; values are case-sensitive):");
+		p.println("  -b: set the base URL for REST service calls.");
+		p.println("  -d: directory containing the Mayan dump.");
+		p.println("  -h: print this help.");
+		p.println("  -p: password for Mayan access.");
+		p.println("  -u: userid for Mayan access.");
+	}
+
 	// static void populateCabinetEntryFrom(final EntryCabinet entry, final
 	// MayanCabinet cabinet,
 	// final Map<ArgKey, String> argMap) {
@@ -144,20 +159,6 @@ public class Utility {
 	// // entry.getChildren().add(e2);
 	// });
 	// }
-
-	/**
-	 * Print usage information
-	 */
-	public static void printHelp() {
-		final PrintStream p = System.out;
-		p.println("Usage: java Main -b <base URL> -d <data directory> -h -p <Mayan password> -u <Mayan userid>");
-		p.println("Switch interpretations (switches are case-insensitive; values are case-sensitive):");
-		p.println("  -b: set the base URL for REST service calls.");
-		p.println("  -d: directory containing the Mayan dump.");
-		p.println("  -h: print this help.");
-		p.println("  -p: password for Mayan access.");
-		p.println("  -u: userid for Mayan access.");
-	}
 
 	/**
 	 * Process the argument array into the argument map.
@@ -345,6 +346,51 @@ public class Utility {
 
 		final WebTarget target = client.target(fullUrl);
 		return target;
+	}
+
+	/**
+	 * Break a string into max-length substrings at spaces
+	 *
+	 * @param in
+	 *            the incoming string to be split
+	 * @param lineLength
+	 *            the maximum size of the output lines. Note that a single word
+	 *            longer than this length will generate a line longer than the max
+	 *
+	 * @return a string consisting of the incoming string with new-line characters
+	 *         inserted at appropriate intervals
+	 */
+	public static String wordWrap(final String in, final int lineLength) {
+		final String[] word = in.split("[ ]+");
+		if (word.length <= 1) {
+			return in;
+		}
+		final StringBuilder output = new StringBuilder();
+		final StringBuilder line = new StringBuilder();
+		// At this point we know that there are at least 2 words in the word array
+
+		Arrays.asList(word).stream().forEach(w -> {
+			final int ll = line.length();
+			if (ll == 0) {
+				line.append(w);
+			} else if (ll + 1 + w.length() > lineLength) {
+				output.append(line);
+				output.append("\n");
+				line.setLength(0);
+				line.append(w);
+			} else {
+				line.append(" ");
+				line.append(w);
+			}
+		});
+
+		// We know at this point that both line and output cannot be empty, but either
+		// one of them might be empty
+		if (line.length() > 0) {
+			output.append(line);
+		}
+		final String rtn = output.toString();
+		return rtn;
 	}
 
 }

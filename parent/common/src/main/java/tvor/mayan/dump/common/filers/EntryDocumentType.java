@@ -8,6 +8,14 @@ import tvor.mayan.dump.common.getters.MayanDocumentType;
 public class EntryDocumentType extends AbstractLabeledEntity {
 	private MayanDocumentType document_type;
 
+	public EntryDocumentType() {
+		// do nothing
+	}
+
+	public EntryDocumentType(final MayanDocumentType t) {
+		document_type = t;
+	}
+
 	public MayanDocumentType getDocument_type() {
 		return document_type;
 	}

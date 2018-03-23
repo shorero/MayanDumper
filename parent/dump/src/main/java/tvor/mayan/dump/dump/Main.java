@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -85,8 +86,8 @@ public class Main {
 	 *            'true' means configure a response logger
 	 * @return
 	 */
-	private static InputStream buildDocumentInputStream(final MayanVersionInfo version,
-			final Map<ArgKey, String> argMap, final boolean addResponseFilter) {
+	static InputStream buildDocumentInputStream(final MayanVersionInfo version, final Map<ArgKey, String> argMap,
+			final boolean addResponseFilter) {
 		final HttpAuthenticationFeature feature = HttpAuthenticationFeature.basicBuilder()
 				.credentials(argMap.get(ArgKey.MAYAN_USERID), argMap.get(ArgKey.MAYAN_PASSWORD)).build();
 		final ClientConfig config = new ClientConfig();
@@ -110,8 +111,11 @@ public class Main {
 		return response.readEntity(InputStream.class);
 	}
 
-	private static void dumpCabinets(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
+	private static boolean dumpCabinets(final ObjectMapper mapper, final Map<ArgKey, String> argMap, boolean abortFlag)
 			throws JsonGenerationException, JsonMappingException, IOException {
+		final Set<String> labelSet = new HashSet<>();
+		final Set<String> dupSet = new TreeSet<>();
+
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_CABINETS.getFunction());
 		final Map<Integer, MayanCabinet> cabinetMap = new HashMap<>();
 		final FileCabinets cabs = new FileCabinets();
@@ -136,6 +140,12 @@ public class Main {
 				entry.setParent_id(pid);
 			}
 			cabs.getCabinets().add(entry);
+
+			if (labelSet.contains(entry.getFull_path())) {
+				dupSet.add(entry.getFull_path());
+			}
+			labelSet.add(entry.getFull_path());
+
 			String targetUrl = Utility.buildUrl(argMap,
 					RestFunction.LIST_DOCUMENTS_FOR_CABINET.getFunction(cabinet.getId()));
 			do {
@@ -148,6 +158,14 @@ public class Main {
 			} while (targetUrl != null);
 		});
 
+		if (!dupSet.isEmpty()) {
+			abortFlag = true;
+			System.out.println(Utility.wordWrap("Abort -- duplicate cabinets -> " + dupSet, 100));
+		}
+		if (abortFlag) {
+			return true;
+		}
+
 		final Path cabinetPath = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.CABINETS.getFileName());
 		final File f = cabinetPath.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(f, cabs);
@@ -155,10 +173,15 @@ public class Main {
 		final Path cdPath = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.CABINET_DOCUMENTS.getFileName());
 		final File cdFile = cdPath.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(cdFile, docs);
+
+		return abortFlag;
 	}
 
-	private static void dumpDocuments(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
+	private static boolean dumpDocuments(final ObjectMapper mapper, final Map<ArgKey, String> argMap, boolean abortFlag)
 			throws JsonGenerationException, JsonMappingException, IOException {
+		final Set<String> labelSet = new HashSet<>();
+		final Set<String> dupSet = new TreeSet<>();
+
 		final FileDocument docs = new FileDocument();
 		final FileMetadataValue metadata = new FileMetadataValue();
 		final FileDocumentVersion version = new FileDocumentVersion();
@@ -168,12 +191,21 @@ public class Main {
 		do {
 			final ListDocuments result = Utility.callApiGetter(ListDocuments.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(d -> {
-				final EntryDocument q = new EntryDocument();
-				q.setDocument(d);
+				final EntryDocument q = new EntryDocument(d);
 				docs.getDocument_list().add(q);
+				if (labelSet.contains(q.getDocument().getLabel())) {
+					dupSet.add(q.getDocument().getLabel());
+				}
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+		if (!dupSet.isEmpty()) {
+			abortFlag = true;
+			System.out.println(Utility.wordWrap("Abort -- duplicate documents -> " + dupSet, 100));
+		}
+		if (abortFlag) {
+			return true;
+		}
 
 		// #2 - dump the metadata values
 		docs.getDocument_list().stream().forEach(entry -> {
@@ -227,31 +259,38 @@ public class Main {
 				throw new RuntimeException(t);
 			}
 		});
+
+		return abortFlag;
 	}
 
-	private static void dumpDocumentType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	private static boolean dumpDocumentType(final ObjectMapper mapper, final Map<ArgKey, String> argMap,
+			boolean abortFlag) throws JsonGenerationException, JsonMappingException, IOException {
+		final Set<String> labelSet = new HashSet<>();
+		final Set<String> dupSet = new TreeSet<>();
+
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_DOCUMENT_TYPES.getFunction());
 		final FileDocumentType types = new FileDocumentType();
 		final FileMetadataDocumentType metadata = new FileMetadataDocumentType();
-		// For the recovery mapping to work we need the type labels to be unique.
-		// Consider the case where the target instance already has the type but the new
-		// dump has new documents.
-		final Set<String> typeLabel = new HashSet<>();
 
 		do {
 			final ListDocumentTypes result = Utility.callApiGetter(ListDocumentTypes.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(t -> {
-				final EntryDocumentType q = new EntryDocumentType();
-				q.setDocument_type(t);
+				final EntryDocumentType q = new EntryDocumentType(t);
 				types.getType_list().add(q);
-				if (typeLabel.contains(q.getLabel())) {
-					throw new RuntimeException("Duplication document-type label: " + q.getLabel());
+				if (labelSet.contains(q.getLabel())) {
+					dupSet.add(q.getLabel());
 				}
-				typeLabel.add(q.getLabel());
+				labelSet.add(q.getLabel());
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+		if (!dupSet.isEmpty()) {
+			abortFlag = true;
+			System.out.println(Utility.wordWrap("Abort -- duplicate document types -> " + dupSet, 100));
+		}
+		if (abortFlag) {
+			return true;
+		}
 
 		types.getType_list().stream().forEach(entry -> {
 			final String function = RestFunction.METADATA_TYPES_FOR_DOCUMENT_TYPE
@@ -275,42 +314,69 @@ public class Main {
 		final Path pairTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), metadata.getFile().getFileName());
 		final File pairFile = pairTarget.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(pairFile, metadata);
+
+		return abortFlag;
 	}
 
-	private static void dumpMetadataType(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	private static boolean dumpMetadataType(final ObjectMapper mapper, final Map<ArgKey, String> argMap,
+			boolean abortFlag) throws JsonGenerationException, JsonMappingException, IOException {
+		final Set<String> labelSet = new HashSet<>();
+		final Set<String> dupSet = new TreeSet<>();
+
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_METADATA_TYPES.getFunction());
 		final FileMetadataType types = new FileMetadataType();
 		do {
 			final ListMetadataTypes result = Utility.callApiGetter(ListMetadataTypes.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(t -> {
-				final EntryMetadataType q = new EntryMetadataType();
-				q.setType(t);
+				final EntryMetadataType q = new EntryMetadataType(t);
 				types.getType_list().add(q);
+				if (labelSet.contains(q.getLabel())) {
+					dupSet.add(q.getLabel());
+				}
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+		if (!dupSet.isEmpty()) {
+			abortFlag = true;
+			System.out.println(Utility.wordWrap("Abort -- duplicate metadata types -> " + dupSet, 100));
+		}
+		if (abortFlag) {
+			return true;
+		}
 
 		final Path target = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), DumpFile.METADATA_TYPES.getFileName());
 		final File f = target.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(f, types);
+		return abortFlag;
 	}
 
-	private static void dumpTags(final ObjectMapper mapper, final Map<ArgKey, String> argMap)
+	private static boolean dumpTags(final ObjectMapper mapper, final Map<ArgKey, String> argMap, boolean abortFlag)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String nextUrl = Utility.buildUrl(argMap, RestFunction.MAYAN_TAGS.getFunction());
 		final FileTag tags = new FileTag();
 		final FileTaggedDocument taggedDoc = new FileTaggedDocument();
+		final Set<String> labelSet = new HashSet<>();
+		final Set<String> dupSet = new TreeSet<>();
 
 		do {
 			final ListTagsResult result = Utility.callApiGetter(ListTagsResult.class, nextUrl, argMap);
 			Arrays.asList(result.getResults()).stream().forEach(currentTag -> {
-				final EntryTag currentEntry = new EntryTag();
-				currentEntry.setTag(currentTag);
+				final EntryTag currentEntry = new EntryTag(currentTag);
 				tags.getTag_list().add(currentEntry);
+				if (labelSet.contains(currentTag.getLabel())) {
+					dupSet.add(currentTag.getLabel());
+				}
+				labelSet.add(currentTag.getLabel());
 			});
 			nextUrl = result.getNext();
 		} while (nextUrl != null);
+		if (!dupSet.isEmpty()) {
+			abortFlag = true;
+			System.out.println(Utility.wordWrap("Abort -- duplicate tags -> " + dupSet, 100));
+		}
+		if (abortFlag) {
+			return true;
+		}
 
 		// NOTE: cannot nest the processing, since the rest calls shouldn't be open
 		// simultaneously
@@ -335,16 +401,23 @@ public class Main {
 		final Path docTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY), taggedDoc.getFile().getFileName());
 		final File docFile = docTarget.toFile();
 		mapper.writerWithDefaultPrettyPrinter().writeValue(docFile, taggedDoc);
+
+		return abortFlag;
 	}
 
 	public static void main(final String[] arg) throws JsonGenerationException, JsonMappingException, IOException {
 		final Map<ArgKey, String> argMap = Utility.extractCommandLineData(arg, "Mayan-EDMS Database Dumper");
 		final ObjectMapper mapper = new ObjectMapper();
-		Main.dumpTags(mapper, argMap);
-		Main.dumpMetadataType(mapper, argMap);
-		Main.dumpDocumentType(mapper, argMap);
-		Main.dumpCabinets(mapper, argMap);
-		Main.dumpDocuments(mapper, argMap);
+		boolean abortFlag = false;
+		abortFlag = Main.dumpTags(mapper, argMap, abortFlag);
+		abortFlag = Main.dumpMetadataType(mapper, argMap, abortFlag);
+		abortFlag = Main.dumpDocumentType(mapper, argMap, abortFlag);
+		abortFlag = Main.dumpCabinets(mapper, argMap, abortFlag);
+		abortFlag = Main.dumpDocuments(mapper, argMap, abortFlag);
+		if (abortFlag) {
+			System.out.println("Mayan-EDMS dump aborted");
+			System.exit(1);
+		}
 	}
 
 }

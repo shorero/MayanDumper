@@ -8,6 +8,14 @@ import tvor.mayan.dump.common.getters.MayanMetadataType;
 public class EntryMetadataType extends AbstractLabeledEntity {
 	private MayanMetadataType type;
 
+	public EntryMetadataType() {
+		// do nothing
+	}
+
+	public EntryMetadataType(final MayanMetadataType t) {
+		type = t;
+	}
+
 	@JsonIgnore
 	@Override
 	public Integer getId() {

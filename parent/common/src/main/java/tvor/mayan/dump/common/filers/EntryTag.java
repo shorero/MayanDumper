@@ -8,6 +8,14 @@ import tvor.mayan.dump.common.getters.MayanTag;
 public class EntryTag extends AbstractLabeledEntity {
 	private MayanTag tag;
 
+	public EntryTag() {
+		// do nothing
+	}
+
+	public EntryTag(final MayanTag currentTag) {
+		tag = currentTag;
+	}
+
 	@JsonIgnore
 	@Override
 	public Integer getId() {
