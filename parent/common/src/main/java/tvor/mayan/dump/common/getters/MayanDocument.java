@@ -29,7 +29,7 @@ public class MayanDocument extends AbstractLabeledEntity {
 		return description;
 	}
 
-	public MayanDocumentType getDocument_Type() {
+	public MayanDocumentType getDocument_type() {
 		return document_type;
 	}
 

@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
@@ -17,6 +19,12 @@ import javax.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+
+import tvor.mayan.dump.common.filers.EntryDocumentVersion;
+import tvor.mayan.dump.common.posters.NewDocument;
 
 public class Utility {
 	/**
@@ -35,6 +43,26 @@ public class Utility {
 			return base + function;
 		}
 		return base + "/" + function;
+	}
+
+	public static <R> R callApiDocumentPoster(final NewDocument theDoc, final EntryDocumentVersion theVersion,
+			final Class<R> responseClass, final String targetUrl, final Map<ArgKey, String> argMap,
+			final boolean registerResponseFilter) throws IOException {
+		final WebTarget target = Utility.setUpRestCall(argMap, targetUrl, true, registerResponseFilter);
+		// try (MultiPart entity = new MultiPart()) {
+		try (FormDataMultiPart entity = new FormDataMultiPart()) {
+			final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+					DumpFile.DOCUMENT_CONTENTS.getFileName(), theVersion.getFile());
+			// NOTE: the name is per the Mayan API documentation
+			final FileDataBodyPart filePart = new FileDataBodyPart("file", contentTarget.toFile(),
+					MediaType.MULTIPART_FORM_DATA_TYPE);
+			entity.field("description", theDoc.getDescription()) //
+					.field("document_type", theDoc.getDocument_type_id()) //
+					.field("label", theDoc.getLabel()) //
+					.field("language", theDoc.getLanguage())//
+					.bodyPart(filePart);
+			return target.request().post(Entity.entity(entity, entity.getMediaType()), responseClass);
+		}
 	}
 
 	/**
@@ -93,11 +121,56 @@ public class Utility {
 	public static <T, R> R callApiPoster(final T theData, final Class<R> theResponse, final String targetUrl,
 			final Map<ArgKey, String> argMap, final boolean registerResponseFilter) {
 		final Entity<T> entity = Entity.entity(theData, MediaType.APPLICATION_JSON);
-		final WebTarget target = Utility.setUpRestCall(argMap, targetUrl, registerResponseFilter);
+		final WebTarget target = Utility.setUpRestCall(argMap, targetUrl, false, registerResponseFilter);
 		final Invocation.Builder ib = target.request(MediaType.APPLICATION_JSON);
 
 		return ib.post(entity, theResponse);
 	}
+
+	public static <R> R callApiVersionPoster(final Class<R> responseClass, final String targetUrl,
+			final Integer documentPk, final EntryDocumentVersion version, final Map<ArgKey, String> argMap,
+			final boolean registerResponseFilter) throws IOException {
+		final WebTarget target = Utility.setUpRestCall(argMap, targetUrl, true, registerResponseFilter);
+		// try (MultiPart entity = new MultiPart()) {
+		try (FormDataMultiPart entity = new FormDataMultiPart()) {
+			final Path contentTarget = Paths.get(argMap.get(ArgKey.DUMP_DATA_DIRECTORY),
+					DumpFile.DOCUMENT_CONTENTS.getFileName(), version.getFile());
+			// NOTE: the name is per the Mayan API documentation
+			final FileDataBodyPart filePart = new FileDataBodyPart("file", contentTarget.toFile(),
+					MediaType.MULTIPART_FORM_DATA_TYPE);
+			entity.field("comment", version.getComment()) //
+					.bodyPart(filePart);
+			return target.request().post(Entity.entity(entity, entity.getMediaType()), responseClass);
+		}
+	}
+
+	// static void populateCabinetEntryFrom(final EntryCabinet entry, final
+	// MayanCabinet cabinet,
+	// final Map<ArgKey, String> argMap) {
+	// entry.setDocuments_count(cabinet.getDocuments_count());
+	// entry.setDocuments_url(cabinet.getDocuments_url());
+	// entry.setFull_path(cabinet.getFull_path());
+	// entry.setId(cabinet.getId());
+	// entry.setLabel(cabinet.getLabel());
+	// entry.setParent(cabinet.getParent());
+	// entry.setParent_url(cabinet.getParent_url());
+	// entry.setUrl(cabinet.getUrl());
+	// String nextUrl = entry.getDocuments_url();
+	// do {
+	// final ListCabinetDocuments docs =
+	// Utility.callApiGetter(ListCabinetDocuments.class, nextUrl, argMap);
+	// Arrays.asList(docs.getResults()).forEach(doc -> {
+	// entry.getDocument_uuid().add(doc.getUuid());
+	// });
+	// nextUrl = docs.getNext();
+	// } while (nextUrl != null);
+	//
+	// Arrays.asList(cabinet.getChildren()).stream().forEach(child -> {
+	// final EntryCabinet e2 = new EntryCabinet();
+	// Utility.populateCabinetEntryFrom(e2, child, argMap);
+	// // entry.getChildren().add(e2);
+	// });
+	// }
 
 	/**
 	 * Extract the individual named fields from the command-line array
@@ -131,34 +204,6 @@ public class Utility {
 		p.println("  -p: password for Mayan access.");
 		p.println("  -u: userid for Mayan access.");
 	}
-
-	// static void populateCabinetEntryFrom(final EntryCabinet entry, final
-	// MayanCabinet cabinet,
-	// final Map<ArgKey, String> argMap) {
-	// entry.setDocuments_count(cabinet.getDocuments_count());
-	// entry.setDocuments_url(cabinet.getDocuments_url());
-	// entry.setFull_path(cabinet.getFull_path());
-	// entry.setId(cabinet.getId());
-	// entry.setLabel(cabinet.getLabel());
-	// entry.setParent(cabinet.getParent());
-	// entry.setParent_url(cabinet.getParent_url());
-	// entry.setUrl(cabinet.getUrl());
-	// String nextUrl = entry.getDocuments_url();
-	// do {
-	// final ListCabinetDocuments docs =
-	// Utility.callApiGetter(ListCabinetDocuments.class, nextUrl, argMap);
-	// Arrays.asList(docs.getResults()).forEach(doc -> {
-	// entry.getDocument_uuid().add(doc.getUuid());
-	// });
-	// nextUrl = docs.getNext();
-	// } while (nextUrl != null);
-	//
-	// Arrays.asList(cabinet.getChildren()).stream().forEach(child -> {
-	// final EntryCabinet e2 = new EntryCabinet();
-	// Utility.populateCabinetEntryFrom(e2, child, argMap);
-	// // entry.getChildren().add(e2);
-	// });
-	// }
 
 	/**
 	 * Process the argument array into the argument map.
@@ -317,7 +362,7 @@ public class Utility {
 	 * @return the WebTarget object used to access the service
 	 */
 	public static WebTarget setUpRestCall(final Map<ArgKey, String> argMap, final String fullUrl) {
-		return Utility.setUpRestCall(argMap, fullUrl, false);
+		return Utility.setUpRestCall(argMap, fullUrl, false, false);
 	}
 
 	/**
@@ -328,13 +373,16 @@ public class Utility {
 	 *            the map of command-line arguments
 	 * @param fullUrl
 	 *            the full URL for the service
+	 * @param registerMultipartFeature
+	 *            if 'true', register the multi-part feature handler in the web
+	 *            target
 	 * @param registerResponseFilter
 	 *            'true' means to attach a logging filter to the service
 	 *
 	 * @return the WebTarget object used to access the service
 	 */
 	public static WebTarget setUpRestCall(final Map<ArgKey, String> argMap, final String fullUrl,
-			final boolean registerResponseFilter) {
+			final boolean registerMultipartFeature, final boolean registerResponseFilter) {
 		final HttpAuthenticationFeature feature = HttpAuthenticationFeature.basicBuilder()
 				.credentials(argMap.get(ArgKey.MAYAN_USERID), argMap.get(ArgKey.MAYAN_PASSWORD)).build();
 		final ClientConfig config = new ClientConfig();
@@ -342,10 +390,12 @@ public class Utility {
 		if (registerResponseFilter) {
 			config.register(ResponseFilter.class);
 		}
+		if (registerMultipartFeature) {
+			config.register(MultiPartFeature.class);
+		}
 		final Client client = ClientBuilder.newClient(config);
 
-		final WebTarget target = client.target(fullUrl);
-		return target;
+		return client.target(fullUrl);
 	}
 
 	/**

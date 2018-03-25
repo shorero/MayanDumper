@@ -28,6 +28,18 @@ public class MayanVersionInfo extends AbstractLabeledEntity {
 		// do nothing
 	}
 
+	/**
+	 * In effect, this is a clone operation. It's needed so we can create a new
+	 * EntryDocumentVersion instance (which extends this class) from an existing
+	 * MayanVersionInfo instance.
+	 *
+	 * NOTE: the compareTo method is defined in the superclass. It sorts on
+	 * ascending label value. By using the timestamp as the "label", we get these
+	 * instances sorted on ascending timestamp.
+	 *
+	 * @param version
+	 *            the MayanVersionInfo instance to clone
+	 */
 	public MayanVersionInfo(final MayanVersionInfo version) {
 		checksum = version.getChecksum();
 		comment = version.getComment();
@@ -68,14 +80,17 @@ public class MayanVersionInfo extends AbstractLabeledEntity {
 
 	@JsonIgnore
 	@Override
+	/**
+	 * In this, the base class, there isn't a natural id. Just return null.
+	 */
 	public Integer getId() {
 		return null;
 	}
 
 	@JsonIgnore
 	@Override
-	public String getLabel() {
-		return checksum;
+	public final String getLabel() {
+		return timestamp;
 	}
 
 	public String getMimetype() {

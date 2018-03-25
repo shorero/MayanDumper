@@ -224,7 +224,7 @@ public class Main {
 
 		// #3 - dump version info
 		docs.getDocument_list().stream().forEach(entry -> {
-			final String function = RestFunction.LIST_VERSIONS_FOR_DOCUMENT.getFunction(entry.getDocument().getId());
+			final String function = RestFunction.VERSIONS_FOR_DOCUMENT.getFunction(entry.getDocument().getId());
 			String versionUrl = Utility.buildUrl(argMap, function);
 			do {
 				final ListDocumentVersion versions = Utility.callApiGetter(ListDocumentVersion.class, versionUrl,

@@ -16,11 +16,13 @@ public enum DumpFile {
 	//
 	DOCUMENTS("documents.json"),
 	//
-	METADATA_DOCUMENT_TYPES("metadataDocumentTypes.json"),
+	METADATA_DOCUMENT_TYPE_ATTACHMENTS("metadataDocumentTypeAttachments.json"),
 	//
 	METADATA_TYPES("metadataTypes.json"),
 	//
 	METADATA_VALUES("metadataValues.json"),
+	//
+	TAG_DOCUMENT_ATTACHMENTS("tagDocumentAttachments"),
 	//
 	TAGS("tags.json"),
 	//

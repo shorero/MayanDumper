@@ -13,7 +13,7 @@ public class FileMetadataDocumentType implements FileContent {
 
 	@Override
 	public DumpFile getFile() {
-		return DumpFile.METADATA_DOCUMENT_TYPES;
+		return DumpFile.METADATA_DOCUMENT_TYPE_ATTACHMENTS;
 	}
 
 	public void setData(final TreeSet<EntryMetadataDocumentType> data) {

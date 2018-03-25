@@ -27,12 +27,6 @@ public class EntryDocumentVersion extends MayanVersionInfo {
 		return document.getId();
 	}
 
-	@JsonIgnore
-	@Override
-	public String getLabel() {
-		return super.getTimestamp();
-	}
-
 	public void setDocument(final ObjectIdentifier document) {
 		this.document = document;
 	}

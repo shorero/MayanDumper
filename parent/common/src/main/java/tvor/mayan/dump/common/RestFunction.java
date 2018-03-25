@@ -17,8 +17,6 @@ public enum RestFunction {
 	//
 	LIST_METADATA_VALUES_FOR_DOCUMENT("/api/metadata/documents/{0}/metadata"),
 	//
-	LIST_VERSIONS_FOR_DOCUMENT("api/documents/documents/{0}/versions/"),
-	//
 	MAYAN_CABINETS("api/cabinets/cabinets/"),
 	//
 	MAYAN_DOCUMENT_TYPES("api/documents/document_types/"),
@@ -30,6 +28,8 @@ public enum RestFunction {
 	MAYAN_TAGS("api/tags/tags/"),
 	//
 	METADATA_TYPES_FOR_DOCUMENT_TYPE("api/metadata/document_types/{0}/metadata_types/"),
+	//
+	VERSIONS_FOR_DOCUMENT("api/documents/documents/{0}/versions/"),
 	//
 	;
 

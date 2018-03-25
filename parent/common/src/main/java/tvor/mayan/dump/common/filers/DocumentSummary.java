@@ -23,8 +23,8 @@ public class DocumentSummary extends AbstractLabeledEntity {
 	public DocumentSummary(final MayanDocument document) {
 		date_added = document.getDate_added();
 		description = document.getDescription();
-		document_type = new ObjectIdentifier(document.getDocument_Type().getLabel(),
-				document.getDocument_Type().getId());
+		document_type = new ObjectIdentifier(document.getDocument_type().getLabel(),
+				document.getDocument_type().getId());
 		id = document.getId();
 		label = document.getLabel();
 		language = document.getLanguage();
